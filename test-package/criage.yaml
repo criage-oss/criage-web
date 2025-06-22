@@ -1,0 +1,27 @@
+name: test-package
+version: 1.0.0
+description: ""
+author: ""
+license: MIT
+homepage: ""
+repository: ""
+keywords: []
+dependencies: {}
+dev_dependencies: {}
+scripts: {}
+files:
+    - '*'
+exclude:
+    - .git
+    - node_modules
+    - '*.log'
+arch:
+    - amd64
+    - arm64
+os:
+    - linux
+    - darwin
+    - windows
+min_version: 1.0.0
+hooks: null
+metadata: {}
