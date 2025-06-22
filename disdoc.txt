@@ -1,0 +1,118 @@
+Это должет быть пакетный менеджер для сборки и развертывания приложений на серверах.
+
+Основные возможности:
+1. Сборка приложений из исходников
+2. Устнановка в каталог определенный в манифест файле
+3. Установка зависимостей из манифест файла
+4. Установка зависимостей из репозитория
+5. Распаковка архива с приложением
+6. Библиотека для сжатия github.com/klauspost/compress/s2
+7. Управление версиями и обновления (проверка обновлений, откат, семантическое версионирование)
+8. Система конфигурации (конфигурационные файлы, переменные окружения, шаблонизация)
+9. Служебные команды (запуск/остановка сервисов, статус, логирование)
+10. Безопасность (контрольные суммы, цифровые подписи, валидация манифестов)
+11. Кэширование (локальный кэш пакетов, кэш зависимостей, инкрементальные обновления)
+12. Создание пакетов локально из исходников для дальнейшего распространения
+
+Команды CLI:
+- criage install <package> - установка пакета
+- criage remove <package> - удаление пакета
+- criage update <package> - обновление пакета
+- criage list - список установленных пакетов
+- criage search <query> - поиск пакетов
+- criage info <package> - информация о пакете
+- criage cache clean - очистка кэша
+- criage verify <package> - проверка целостности
+- criage build - создание пакета из исходников (используя build.json)
+- criage pack <directory> - упаковка готового приложения в пакет
+
+Манифест для упаковки (build.json):
+{
+    "name": "myapp",
+    "version": "1.0.0",
+    "description": "Описание приложения",
+    "build": {
+        "source_dir": "./src",
+        "build_command": "go build -o myapp .",
+        "output_binary": "myapp",
+        "build_dependencies": ["golang:1.21"],
+        "pre_build": "go mod tidy",
+        "post_build": "strip myapp"
+    },
+    "package": {
+        "include_files": [
+            "myapp",
+            "config/",
+            "static/",
+            "templates/"
+        ],
+        "exclude_files": [
+            "*.log",
+            "tmp/",
+            ".git/"
+        ],
+        "compression": "s2"
+    },
+    "target": {
+        "install_path": "/opt/myapp",
+        "config_path": "/etc/myapp",
+        "data_path": "/var/lib/myapp",
+        "user": "myapp",
+        "group": "myapp",
+        "permissions": "755"
+    },
+    "hooks": {
+        "before_install": "echo 'before install'",
+        "after_install": "systemctl enable myapp",
+        "before_uninstall": "systemctl stop myapp",
+        "after_uninstall": "userdel myapp"
+    },
+    "service": {
+        "name": "myapp",
+        "enabled": true,
+        "restart": "always",
+        "working_directory": "/opt/myapp"
+    },
+    "environment": {
+        "APP_ENV": "production",
+        "LOG_LEVEL": "info"
+    },
+    "architecture": ["amd64", "arm64"],
+    "os": ["linux", "windows"]
+}
+
+Расширенный манифест:
+{
+    "name": "myapp",
+    "version": "1.0.0",
+    "description": "Описание приложения",
+    "dependencies": {
+        "myapp": "1.0.0"
+    },
+    "install_path": "/opt/myapp",
+    "config_path": "/etc/myapp",
+    "data_path": "/var/lib/myapp",
+    "user": "myapp",
+    "group": "myapp",
+    "permissions": "755",
+    "before_install": "echo 'before install'",
+    "after_install": "echo 'after install'",
+    "before_uninstall": "systemctl stop myapp",
+    "after_uninstall": "userdel myapp",
+    "service": {
+        "name": "myapp",
+        "enabled": true,
+        "restart": "always"
+    },
+    "environment": {
+        "APP_ENV": "production",
+        "LOG_LEVEL": "info"
+    },
+    "checksum": "sha256:abc123...",
+    "architecture": ["amd64", "arm64"],
+    "os": ["linux", "windows"]
+}
+
+
+
+
