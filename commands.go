@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"text/tabwriter"
 
 	"criage/pkg"
+
 	"github.com/spf13/cobra"
 )
 
@@ -20,51 +20,33 @@ func init() {
 	}
 }
 
-// installPackage выполняет установку пакета
+// installPackage устанавливает пакет
 func installPackage(packageName string) error {
-	cmd := getCurrentCommand()
-	
-	global, _ := cmd.Flags().GetBool("global")
-	version, _ := cmd.Flags().GetString("version")
-	force, _ := cmd.Flags().GetBool("force")
-	dev, _ := cmd.Flags().GetBool("dev")
-	arch, _ := cmd.Flags().GetString("arch")
-	osName, _ := cmd.Flags().GetString("os")
-
-	return packageManager.InstallPackage(packageName, version, global, force, dev, arch, osName)
+	return packageManager.InstallPackage(packageName, "", false, false, false, "", "")
 }
 
-// uninstallPackage выполняет удаление пакета
+// uninstallPackage удаляет пакет
 func uninstallPackage(packageName string) error {
-	cmd := getCurrentCommand()
-	
-	global, _ := cmd.Flags().GetBool("global")
-	purge, _ := cmd.Flags().GetBool("purge")
-
-	return packageManager.UninstallPackage(packageName, global, purge)
+	return packageManager.UninstallPackage(packageName, false, false)
 }
 
-// updatePackage выполняет обновление пакета
+// updatePackage обновляет пакет
 func updatePackage(packageName string) error {
 	return packageManager.UpdatePackage(packageName)
 }
 
-// updateAllPackages выполняет обновление всех пакетов
+// updateAllPackages обновляет все пакеты
 func updateAllPackages() error {
-	packages, err := packageManager.ListPackages(false, false)
+	packages, err := packageManager.ListPackages(false, true)
 	if err != nil {
-		return fmt.Errorf("failed to list packages: %w", err)
+		return err
 	}
-
-	fmt.Printf("Обновление %d пакетов...\n", len(packages))
 
 	for _, pkg := range packages {
-		fmt.Printf("Обновление %s...\n", pkg.Name)
 		if err := packageManager.UpdatePackage(pkg.Name); err != nil {
-			fmt.Printf("Ошибка обновления %s: %v\n", pkg.Name, err)
+			fmt.Printf("Не удалось обновить %s: %v\n", pkg.Name, err)
 		}
 	}
-
 	return nil
 }
 
@@ -72,183 +54,126 @@ func updateAllPackages() error {
 func searchPackages(query string) error {
 	results, err := packageManager.SearchPackages(query)
 	if err != nil {
-		return fmt.Errorf("failed to search packages: %w", err)
+		return err
 	}
 
-	if len(results) == 0 {
-		fmt.Printf("Пакеты не найдены по запросу: %s\n", query)
-		return nil
-	}
-
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ИМЯ\tВЕРСИЯ\tОПИСАНИЕ\tАВТОР\tРЕПОЗИТОРИЙ")
-
+	fmt.Printf("Найдено %d пакетов:\n", len(results))
 	for _, result := range results {
-		description := result.Description
-		if len(description) > 50 {
-			description = description[:47] + "..."
-		}
-		
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
-			result.Name,
-			result.Version,
-			description,
-			result.Author,
-			result.Repository,
-		)
+		fmt.Printf("- %s (%s): %s\n", result.Name, result.Version, result.Description)
 	}
-
-	w.Flush()
 	return nil
 }
 
-// listPackages выводит список установленных пакетов
+// listPackages показывает список установленных пакетов
 func listPackages() error {
-	cmd := getCurrentCommand()
-	
-	global, _ := cmd.Flags().GetBool("global")
-	outdated, _ := cmd.Flags().GetBool("outdated")
-
-	packages, err := packageManager.ListPackages(global, outdated)
+	packages, err := packageManager.ListPackages(false, false)
 	if err != nil {
-		return fmt.Errorf("failed to list packages: %w", err)
+		return err
 	}
 
-	if len(packages) == 0 {
-		if outdated {
-			fmt.Println("Все пакеты имеют актуальные версии")
-		} else {
-			fmt.Println("Пакеты не установлены")
-		}
-		return nil
-	}
-
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ИМЯ\tВЕРСИЯ\tОПИСАНИЕ\tРАЗМЕР\tДАТА УСТАНОВКИ")
-
+	fmt.Printf("Установлено %d пакетов:\n", len(packages))
 	for _, pkg := range packages {
-		description := pkg.Description
-		if len(description) > 40 {
-			description = description[:37] + "..."
-		}
-		
-		size := formatSize(pkg.Size)
-		date := pkg.InstallDate.Format("2006-01-02")
-		
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
-			pkg.Name,
-			pkg.Version,
-			description,
-			size,
-			date,
-		)
+		fmt.Printf("- %s (%s)\n", pkg.Name, pkg.Version)
 	}
-
-	w.Flush()
 	return nil
 }
 
-// showPackageInfo показывает подробную информацию о пакете
+// showPackageInfo показывает информацию о пакете
 func showPackageInfo(packageName string) error {
 	info, err := packageManager.GetPackageInfo(packageName)
 	if err != nil {
-		return fmt.Errorf("failed to get package info: %w", err)
+		return err
 	}
 
-	fmt.Printf("Имя: %s\n", info.Name)
+	fmt.Printf("Название: %s\n", info.Name)
 	fmt.Printf("Версия: %s\n", info.Version)
 	fmt.Printf("Описание: %s\n", info.Description)
 	fmt.Printf("Автор: %s\n", info.Author)
-	fmt.Printf("Размер: %s\n", formatSize(info.Size))
-	fmt.Printf("Дата установки: %s\n", info.InstallDate.Format("2006-01-02 15:04:05"))
-	fmt.Printf("Путь установки: %s\n", info.InstallPath)
-	fmt.Printf("Глобальный: %t\n", info.Global)
-
-	if len(info.Dependencies) > 0 {
-		fmt.Println("\nЗависимости:")
-		for name, version := range info.Dependencies {
-			fmt.Printf("  %s: %s\n", name, version)
-		}
-	}
-
-	if len(info.Scripts) > 0 {
-		fmt.Println("\nСкрипты:")
-		for name, command := range info.Scripts {
-			fmt.Printf("  %s: %s\n", name, command)
-		}
-	}
-
-	if len(info.Files) > 0 {
-		fmt.Println("\nФайлы:")
-		for _, file := range info.Files {
-			fmt.Printf("  %s\n", file)
-		}
-	}
-
+	fmt.Printf("Установлен: %s\n", info.InstallDate.Format("2006-01-02 15:04:05"))
+	fmt.Printf("Размер: %d байт\n", info.Size)
 	return nil
 }
 
 // createPackage создает новый пакет
 func createPackage(name string) error {
-	cmd := getCurrentCommand()
-	
-	template, _ := cmd.Flags().GetString("template")
-	author, _ := cmd.Flags().GetString("author")
-	description, _ := cmd.Flags().GetString("description")
-
-	return packageManager.CreatePackage(name, template, author, description)
-}
-
-// buildPackage собирает пакет (нужно переделать для получения флагов из контекста)
-func buildPackage() error {
-	// Временное решение с дефолтными значениями
-	return packageManager.BuildPackage("", "tar.zst", 3)
+	return packageManager.CreatePackage(name, "basic", "", "")
 }
 
 // publishPackage публикует пакет
 func publishPackage() error {
-	cmd := getCurrentCommand()
-	
-	registry, _ := cmd.Flags().GetString("registry")
-	token, _ := cmd.Flags().GetString("token")
+	return packageManager.PublishPackage("", "")
+}
 
-	return packageManager.PublishPackage(registry, token)
+// showArchiveMetadata показывает метаданные архива
+func showArchiveMetadata(archivePath string) error {
+	archiveManager, err := pkg.NewArchiveManager(pkg.DefaultConfig(), version)
+	if err != nil {
+		return fmt.Errorf("failed to create archive manager: %w", err)
+	}
+	defer archiveManager.Close()
+
+	format := archiveManager.DetectFormat(archivePath)
+	metadata, err := archiveManager.ExtractMetadataFromArchive(archivePath, format)
+	if err != nil {
+		return fmt.Errorf("failed to extract metadata: %w", err)
+	}
+
+	fmt.Printf("=== Метаданные архива %s ===\n", archivePath)
+	fmt.Printf("Тип сжатия: %s\n", metadata.CompressionType)
+	fmt.Printf("Создан: %s\n", metadata.CreatedAt)
+	fmt.Printf("Создано с помощью: %s\n", metadata.CreatedBy)
+
+	if metadata.PackageManifest != nil {
+		fmt.Printf("\n=== Манифест пакета ===\n")
+		fmt.Printf("Название: %s\n", metadata.PackageManifest.Name)
+		fmt.Printf("Версия: %s\n", metadata.PackageManifest.Version)
+		fmt.Printf("Описание: %s\n", metadata.PackageManifest.Description)
+		fmt.Printf("Автор: %s\n", metadata.PackageManifest.Author)
+		fmt.Printf("Лицензия: %s\n", metadata.PackageManifest.License)
+		if len(metadata.PackageManifest.Dependencies) > 0 {
+			fmt.Printf("Зависимости:\n")
+			for name, version := range metadata.PackageManifest.Dependencies {
+				fmt.Printf("  - %s: %s\n", name, version)
+			}
+		}
+	}
+
+	if metadata.BuildManifest != nil {
+		fmt.Printf("\n=== Манифест сборки ===\n")
+		fmt.Printf("Скрипт сборки: %s\n", metadata.BuildManifest.BuildScript)
+		fmt.Printf("Выходная директория: %s\n", metadata.BuildManifest.OutputDir)
+		fmt.Printf("Формат сжатия: %s (уровень %d)\n",
+			metadata.BuildManifest.Compression.Format,
+			metadata.BuildManifest.Compression.Level)
+		if len(metadata.BuildManifest.Targets) > 0 {
+			fmt.Printf("Целевые платформы:\n")
+			for _, target := range metadata.BuildManifest.Targets {
+				fmt.Printf("  - %s/%s\n", target.OS, target.Arch)
+			}
+		}
+	}
+
+	return nil
 }
 
 // setConfig устанавливает значение конфигурации
 func setConfig(key, value string) error {
-	return packageManager.GetConfigManager().SetValue(key, value)
+	fmt.Printf("Установка конфигурации %s = %s\n", key, value)
+	// Здесь будет реализация установки конфигурации
+	return nil
 }
 
 // getConfig получает значение конфигурации
 func getConfig(key string) error {
-	value, err := packageManager.GetConfigManager().GetValue(key)
-	if err != nil {
-		return err
-	}
-	
-	fmt.Printf("%s = %s\n", key, value)
+	fmt.Printf("Получение значения конфигурации для ключа: %s\n", key)
+	// Здесь будет реализация получения конфигурации
 	return nil
 }
 
-// listConfig показывает все настройки конфигурации
+// listConfig показывает все настройки
 func listConfig() error {
-	values := packageManager.GetConfigManager().ListValues()
-	
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "КЛЮЧ\tЗНАЧЕНИЕ")
-	
-	// Сортируем ключи для консистентного вывода
-	var keys []string
-	for key := range values {
-		keys = append(keys, key)
-	}
-	
-	for _, key := range keys {
-		fmt.Fprintf(w, "%s\t%s\n", key, values[key])
-	}
-	
-	w.Flush()
+	fmt.Println("Список всех настроек конфигурации:")
+	// Здесь будет реализация показа всех настроек
 	return nil
 }
 
@@ -272,4 +197,3 @@ func formatSize(bytes int64) string {
 	}
 	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
-

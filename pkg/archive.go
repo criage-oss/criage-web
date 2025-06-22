@@ -4,17 +4,29 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4/v4"
 	"github.com/ulikunitz/xz"
 )
+
+// PackageMetadata представляет метаданные пакета для встраивания в архив
+type PackageMetadata struct {
+	PackageManifest *PackageManifest `json:"package_manifest"`
+	BuildManifest   *BuildManifest   `json:"build_manifest"`
+	CompressionType string           `json:"compression_type"`
+	CreatedAt       string           `json:"created_at"`
+	CreatedBy       string           `json:"created_by"`
+	Checksum        string           `json:"checksum,omitempty"`
+}
 
 // ArchiveManager управляет созданием и извлечением архивов
 type ArchiveManager struct {
@@ -23,12 +35,13 @@ type ArchiveManager struct {
 	zstdDecoder  *zstd.Decoder
 	encoderMutex sync.Mutex
 	decoderMutex sync.Mutex
+	version      string
 }
 
 // NewArchiveManager создает новый менеджер архивов
-func NewArchiveManager(config *Config) (*ArchiveManager, error) {
+func NewArchiveManager(config *Config, version string) (*ArchiveManager, error) {
 	// Создаем zstd encoder с оптимальными настройками
-	encoder, err := zstd.NewWriter(nil, 
+	encoder, err := zstd.NewWriter(nil,
 		zstd.WithEncoderLevel(zstd.EncoderLevelFromZstd(config.Compression.Level)),
 		zstd.WithEncoderConcurrency(config.Parallel),
 		zstd.WithWindowSize(1<<20), // 1MB window для лучшего сжатия
@@ -50,6 +63,7 @@ func NewArchiveManager(config *Config) (*ArchiveManager, error) {
 		config:      config,
 		zstdEncoder: encoder,
 		zstdDecoder: decoder,
+		version:     version,
 	}, nil
 }
 
@@ -104,6 +118,34 @@ func (am *ArchiveManager) DetectFormat(filename string) ArchiveFormat {
 		return FormatZip
 	default:
 		return FormatTarZst // По умолчанию
+	}
+}
+
+// CreateArchiveWithMetadata создает архив с встроенными метаданными
+func (am *ArchiveManager) CreateArchiveWithMetadata(srcPath, dstPath string, format ArchiveFormat, files []string, exclude []string, metadata *PackageMetadata) error {
+	metadata.CompressionType = string(format)
+	metadata.CreatedAt = time.Now().Format(time.RFC3339)
+	metadata.CreatedBy = "criage/" + am.version // версия будет передаваться из main.go
+
+	switch format {
+	case FormatTarZst, FormatTarLz4, FormatTarXz, FormatTarGz:
+		return am.createTarWithMetadata(srcPath, dstPath, format, files, exclude, metadata)
+	case FormatZip:
+		return am.createZipWithMetadata(srcPath, dstPath, files, exclude, metadata)
+	default:
+		return fmt.Errorf("unsupported archive format: %s", format)
+	}
+}
+
+// ExtractMetadataFromArchive извлекает метаданные из архива
+func (am *ArchiveManager) ExtractMetadataFromArchive(archivePath string, format ArchiveFormat) (*PackageMetadata, error) {
+	switch format {
+	case FormatTarZst, FormatTarLz4, FormatTarXz, FormatTarGz:
+		return am.extractTarMetadata(archivePath, format)
+	case FormatZip:
+		return am.extractZipMetadata(archivePath)
+	default:
+		return nil, fmt.Errorf("unsupported archive format: %s", format)
 	}
 }
 
@@ -212,7 +254,7 @@ func (am *ArchiveManager) addFilesToTar(tw *tar.Writer, srcPath string, files []
 
 	for _, file := range files {
 		fullPath := filepath.Join(srcPath, file)
-		
+
 		err := filepath.Walk(fullPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -272,7 +314,7 @@ func (am *ArchiveManager) addFilesToZip(zw *zip.Writer, srcPath string, files []
 
 	for _, file := range files {
 		fullPath := filepath.Join(srcPath, file)
-		
+
 		err := filepath.Walk(fullPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -483,7 +525,7 @@ func (am *ArchiveManager) extractZipFile(file *zip.File, dstPath string) error {
 func (am *ArchiveManager) Close() error {
 	am.encoderMutex.Lock()
 	defer am.encoderMutex.Unlock()
-	
+
 	am.decoderMutex.Lock()
 	defer am.decoderMutex.Unlock()
 
@@ -495,4 +537,243 @@ func (am *ArchiveManager) Close() error {
 	}
 
 	return nil
+}
+
+// createTarWithMetadata создает TAR архив с метаданными в PAX extended headers
+func (am *ArchiveManager) createTarWithMetadata(srcPath, dstPath string, format ArchiveFormat, files []string, exclude []string, metadata *PackageMetadata) error {
+	outFile, err := os.Create(dstPath)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer outFile.Close()
+
+	// Создаем компрессор в зависимости от формата
+	var compressor io.WriteCloser
+	switch format {
+	case FormatTarZst:
+		am.encoderMutex.Lock()
+		am.zstdEncoder.Reset(outFile)
+		compressor = am.zstdEncoder
+		defer func() {
+			am.zstdEncoder.Close()
+			am.encoderMutex.Unlock()
+		}()
+	case FormatTarLz4:
+		compressor = lz4.NewWriter(outFile)
+		defer compressor.Close()
+	case FormatTarXz:
+		xzWriter, err := xz.NewWriter(outFile)
+		if err != nil {
+			return fmt.Errorf("failed to create xz writer: %w", err)
+		}
+		compressor = xzWriter
+		defer compressor.Close()
+	case FormatTarGz:
+		gzWriter, err := gzip.NewWriterLevel(outFile, am.config.Compression.Level)
+		if err != nil {
+			return fmt.Errorf("failed to create gzip writer: %w", err)
+		}
+		compressor = gzWriter
+		defer compressor.Close()
+	}
+
+	tw := tar.NewWriter(compressor)
+	defer tw.Close()
+
+	// Добавляем метаданные как PAX extended header в начале архива
+	if err := am.addMetadataToPaxHeader(tw, metadata); err != nil {
+		return fmt.Errorf("failed to add metadata: %w", err)
+	}
+
+	return am.addFilesToTar(tw, srcPath, files, exclude)
+}
+
+// addMetadataToPaxHeader добавляет метаданные в PAX extended header
+func (am *ArchiveManager) addMetadataToPaxHeader(tw *tar.Writer, metadata *PackageMetadata) error {
+	// Сериализуем метаданные в JSON
+	metadataJSON, err := json.Marshal(metadata)
+	if err != nil {
+		return fmt.Errorf("failed to marshal metadata: %w", err)
+	}
+
+	// Создаем PAX extended header
+	paxHeaders := map[string]string{
+		"criage.metadata": string(metadataJSON),
+		"criage.version":  am.version,
+	}
+
+	// Добавляем информацию о манифестах если они есть
+	if metadata.PackageManifest != nil {
+		manifestJSON, _ := json.Marshal(metadata.PackageManifest)
+		paxHeaders["criage.package_manifest"] = string(manifestJSON)
+	}
+
+	if metadata.BuildManifest != nil {
+		buildJSON, _ := json.Marshal(metadata.BuildManifest)
+		paxHeaders["criage.build_manifest"] = string(buildJSON)
+	}
+
+	// Создаем специальный файл с PAX headers
+	hdr := &tar.Header{
+		Name:       ".criage_metadata",
+		Mode:       0644,
+		Size:       0,
+		ModTime:    time.Now(),
+		Typeflag:   tar.TypeReg,
+		PAXRecords: paxHeaders,
+	}
+
+	return tw.WriteHeader(hdr)
+}
+
+// createZipWithMetadata создает ZIP архив с метаданными в комментарии
+func (am *ArchiveManager) createZipWithMetadata(srcPath, dstPath string, files []string, exclude []string, metadata *PackageMetadata) error {
+	outFile, err := os.Create(dstPath)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer outFile.Close()
+
+	zipWriter := zip.NewWriter(outFile)
+	defer zipWriter.Close()
+
+	// Сериализуем метаданные в JSON и добавляем как комментарий к ZIP
+	metadataJSON, err := json.Marshal(metadata)
+	if err != nil {
+		return fmt.Errorf("failed to marshal metadata: %w", err)
+	}
+
+	zipWriter.SetComment(string(metadataJSON))
+
+	// Также добавляем метаданные как отдельный файл в архив
+	metadataFile, err := zipWriter.Create(".criage_metadata.json")
+	if err != nil {
+		return fmt.Errorf("failed to create metadata file: %w", err)
+	}
+
+	if _, err := metadataFile.Write(metadataJSON); err != nil {
+		return fmt.Errorf("failed to write metadata: %w", err)
+	}
+
+	return am.addFilesToZip(zipWriter, srcPath, files, exclude)
+}
+
+// extractTarMetadata извлекает метаданные из TAR архива
+func (am *ArchiveManager) extractTarMetadata(archivePath string, format ArchiveFormat) (*PackageMetadata, error) {
+	file, err := os.Open(archivePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open archive: %w", err)
+	}
+	defer file.Close()
+
+	// Создаем декомпрессор в зависимости от формата
+	var reader io.Reader
+	switch format {
+	case FormatTarZst:
+		am.decoderMutex.Lock()
+		am.zstdDecoder.Reset(file)
+		reader = am.zstdDecoder
+		defer am.decoderMutex.Unlock()
+	case FormatTarLz4:
+		reader = lz4.NewReader(file)
+	case FormatTarXz:
+		xzReader, err := xz.NewReader(file)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create xz reader: %w", err)
+		}
+		reader = xzReader
+	case FormatTarGz:
+		gzReader, err := gzip.NewReader(file)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gzip reader: %w", err)
+		}
+		defer gzReader.Close()
+		reader = gzReader
+	}
+
+	tr := tar.NewReader(reader)
+
+	// Ищем метаданные в первых записях архива
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to read tar header: %w", err)
+		}
+
+		// Проверяем PAX records на наличие метаданных
+		if hdr.PAXRecords != nil {
+			if metadataStr, exists := hdr.PAXRecords["criage.metadata"]; exists {
+				var metadata PackageMetadata
+				if err := json.Unmarshal([]byte(metadataStr), &metadata); err != nil {
+					return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
+				}
+				return &metadata, nil
+			}
+		}
+
+		// Если это файл метаданных
+		if hdr.Name == ".criage_metadata" || hdr.Name == ".criage_metadata.json" {
+			data, err := io.ReadAll(tr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read metadata file: %w", err)
+			}
+
+			var metadata PackageMetadata
+			if err := json.Unmarshal(data, &metadata); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
+			}
+			return &metadata, nil
+		}
+
+		// Останавливаемся после нескольких записей, если метаданные не найдены
+		if hdr.Name != ".criage_metadata" && !strings.HasPrefix(hdr.Name, ".") {
+			break
+		}
+	}
+
+	return nil, fmt.Errorf("metadata not found in archive")
+}
+
+// extractZipMetadata извлекает метаданные из ZIP архива
+func (am *ArchiveManager) extractZipMetadata(archivePath string) (*PackageMetadata, error) {
+	zipReader, err := zip.OpenReader(archivePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open zip archive: %w", err)
+	}
+	defer zipReader.Close()
+
+	// Сначала пробуем извлечь из комментария ZIP
+	if zipReader.Comment != "" {
+		var metadata PackageMetadata
+		if err := json.Unmarshal([]byte(zipReader.Comment), &metadata); err == nil {
+			return &metadata, nil
+		}
+	}
+
+	// Ищем файл метаданных
+	for _, file := range zipReader.File {
+		if file.Name == ".criage_metadata.json" {
+			rc, err := file.Open()
+			if err != nil {
+				return nil, fmt.Errorf("failed to open metadata file: %w", err)
+			}
+			defer rc.Close()
+
+			data, err := io.ReadAll(rc)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read metadata: %w", err)
+			}
+
+			var metadata PackageMetadata
+			if err := json.Unmarshal(data, &metadata); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
+			}
+			return &metadata, nil
+		}
+	}
+
+	return nil, fmt.Errorf("metadata not found in zip archive")
 }

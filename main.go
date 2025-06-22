@@ -13,9 +13,9 @@ var (
 
 func main() {
 	var rootCmd = &cobra.Command{
-		Use:   "criage",
-		Short: "Высокопроизводительный пакетный менеджер",
-		Long:  "Criage - быстрый и эффективный пакетный менеджер для управления пакетами и архивами",
+		Use:     "criage",
+		Short:   "Высокопроизводительный пакетный менеджер",
+		Long:    "Criage - быстрый и эффективный пакетный менеджер для управления пакетами и архивами",
 		Version: version,
 	}
 
@@ -31,6 +31,7 @@ func main() {
 		newBuildCmd(),
 		newPublishCmd(),
 		newConfigCmd(),
+		newMetadataCmd(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {
@@ -171,7 +172,7 @@ func newBuildCmd() *cobra.Command {
 			output, _ := cmd.Flags().GetString("output")
 			format, _ := cmd.Flags().GetString("format")
 			compression, _ := cmd.Flags().GetInt("compression")
-			
+
 			return packageManager.BuildPackage(output, format, compression)
 		},
 	}
@@ -235,4 +236,17 @@ func newConfigCmd() *cobra.Command {
 	)
 
 	return cmd
+}
+
+// Команда просмотра метаданных архива
+func newMetadataCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "metadata [archive]",
+		Short: "Показать метаданные архива",
+		Long:  "Извлечь и показать встроенные метаданные из архива пакета",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return showArchiveMetadata(args[0])
+		},
+	}
 }

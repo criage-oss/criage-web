@@ -16,11 +16,11 @@ import (
 
 // PackageManager основной менеджер пакетов
 type PackageManager struct {
-	configManager   *ConfigManager
-	archiveManager  *ArchiveManager
+	configManager     *ConfigManager
+	archiveManager    *ArchiveManager
 	installedPackages map[string]*PackageInfo
-	packagesMutex    sync.RWMutex
-	httpClient       *http.Client
+	packagesMutex     sync.RWMutex
+	httpClient        *http.Client
 }
 
 // NewPackageManager создает новый пакетный менеджер
@@ -30,7 +30,13 @@ func NewPackageManager() (*PackageManager, error) {
 		return nil, fmt.Errorf("failed to create config manager: %w", err)
 	}
 
-	archiveManager, err := NewArchiveManager(configManager.GetConfig())
+	// Получаем версию из переменной окружения или используем "1.0.0"
+	version := os.Getenv("CRIAGE_VERSION")
+	if version == "" {
+		version = "1.0.0"
+	}
+
+	archiveManager, err := NewArchiveManager(configManager.GetConfig(), version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create archive manager: %w", err)
 	}
@@ -122,7 +128,7 @@ func (pm *PackageManager) InstallPackage(packageName, version string, global, fo
 
 	// Определяем путь установки
 	installPath := pm.configManager.GetInstallPath(packageName, global)
-	
+
 	// Удаляем старую версию, если она есть
 	if force {
 		if err := os.RemoveAll(installPath); err != nil {
@@ -252,28 +258,28 @@ func (pm *PackageManager) UpdatePackage(packageName string) error {
 // SearchPackages ищет пакеты в репозиториях
 func (pm *PackageManager) SearchPackages(query string) ([]SearchResult, error) {
 	var results []SearchResult
-	
+
 	repositories := pm.configManager.GetRepositories()
-	
+
 	for _, repo := range repositories {
 		if !repo.Enabled {
 			continue
 		}
-		
+
 		repoResults, err := pm.searchInRepository(repo, query)
 		if err != nil {
 			fmt.Printf("Предупреждение: failed to search in repository %s: %v\n", repo.Name, err)
 			continue
 		}
-		
+
 		results = append(results, repoResults...)
 	}
-	
+
 	// Сортируем по релевантности
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Score > results[j].Score
 	})
-	
+
 	return results, nil
 }
 
@@ -283,7 +289,7 @@ func (pm *PackageManager) ListPackages(global, outdated bool) ([]*PackageInfo, e
 	defer pm.packagesMutex.RUnlock()
 
 	var packages []*PackageInfo
-	
+
 	for _, pkg := range pm.installedPackages {
 		if global && !pkg.Global {
 			continue
@@ -291,7 +297,7 @@ func (pm *PackageManager) ListPackages(global, outdated bool) ([]*PackageInfo, e
 		if !global && pkg.Global {
 			continue
 		}
-		
+
 		if outdated {
 			// Проверяем, есть ли более новая версия
 			latestInfo, _, err := pm.findPackage(pkg.Name, "", runtime.GOARCH, runtime.GOOS)
@@ -299,15 +305,15 @@ func (pm *PackageManager) ListPackages(global, outdated bool) ([]*PackageInfo, e
 				continue
 			}
 		}
-		
+
 		packages = append(packages, pkg)
 	}
-	
+
 	// Сортируем по имени
 	sort.Slice(packages, func(i, j int) bool {
 		return packages[i].Name < packages[j].Name
 	})
-	
+
 	return packages, nil
 }
 
@@ -317,7 +323,7 @@ func (pm *PackageManager) GetPackageInfo(packageName string) (*PackageInfo, erro
 	if !exists {
 		return nil, fmt.Errorf("package not installed: %s", packageName)
 	}
-	
+
 	return info, nil
 }
 
@@ -328,21 +334,21 @@ func (pm *PackageManager) CreatePackage(name, template, author, description stri
 	}
 
 	manifest := &PackageManifest{
-		Name:        name,
-		Version:     "1.0.0",
-		Description: description,
-		Author:      author,
-		License:     "MIT",
-		Keywords:    []string{},
+		Name:         name,
+		Version:      "1.0.0",
+		Description:  description,
+		Author:       author,
+		License:      "MIT",
+		Keywords:     []string{},
 		Dependencies: make(map[string]string),
-		DevDeps:     make(map[string]string),
-		Scripts:     make(map[string]string),
-		Files:       []string{"*"},
-		Exclude:     []string{".git", "node_modules", "*.log"},
-		Arch:        []string{"amd64", "arm64"},
-		OS:          []string{"linux", "darwin", "windows"},
-		MinVersion:  "1.0.0",
-		Metadata:    make(map[string]any),
+		DevDeps:      make(map[string]string),
+		Scripts:      make(map[string]string),
+		Files:        []string{"*"},
+		Exclude:      []string{".git", "node_modules", "*.log"},
+		Arch:         []string{"amd64", "arm64"},
+		OS:           []string{"linux", "darwin", "windows"},
+		MinVersion:   "1.0.0",
+		Metadata:     make(map[string]any),
 	}
 
 	// Создаем основные файлы
@@ -368,7 +374,7 @@ func (pm *PackageManager) CreatePackage(name, template, author, description stri
 	return nil
 }
 
-// BuildPackage собирает пакет
+// BuildPackage собирает пакет с встроенными метаданными
 func (pm *PackageManager) BuildPackage(outputPath, format string, compressionLevel int) error {
 	fmt.Println("Сборка пакета...")
 
@@ -412,13 +418,21 @@ func (pm *PackageManager) BuildPackage(outputPath, format string, compressionLev
 		outputPath = fmt.Sprintf("%s-%s.%s", manifest.Name, manifest.Version, format)
 	}
 
-	// Создаем архив
+	// Создаем структуру метаданных для встраивания в архив
+	metadata := &PackageMetadata{
+		PackageManifest: manifest,
+		BuildManifest:   buildManifest,
+		CompressionType: format,
+		CreatedBy:       "criage",
+	}
+
+	// Создаем архив с встроенными метаданными
 	archiveFormat := ArchiveFormat(format)
-	if err := pm.archiveManager.CreateArchive(".", outputPath, archiveFormat, buildManifest.IncludeFiles, buildManifest.ExcludeFiles); err != nil {
+	if err := pm.archiveManager.CreateArchiveWithMetadata(".", outputPath, archiveFormat, buildManifest.IncludeFiles, buildManifest.ExcludeFiles, metadata); err != nil {
 		return fmt.Errorf("failed to create archive: %w", err)
 	}
 
-	fmt.Printf("Пакет собран: %s\n", outputPath)
+	fmt.Printf("Пакет собран с встроенными метаданными: %s\n", outputPath)
 	return nil
 }
 
@@ -452,7 +466,7 @@ func (pm *PackageManager) PublishPackage(registryURL, token string) error {
 func (pm *PackageManager) getInstalledPackage(packageName string) (*PackageInfo, bool) {
 	pm.packagesMutex.RLock()
 	defer pm.packagesMutex.RUnlock()
-	
+
 	info, exists := pm.installedPackages[packageName]
 	return info, exists
 }
@@ -460,23 +474,23 @@ func (pm *PackageManager) getInstalledPackage(packageName string) (*PackageInfo,
 // findPackage ищет пакет в репозиториях
 func (pm *PackageManager) findPackage(packageName, version, arch, osName string) (*PackageInfo, string, error) {
 	repositories := pm.configManager.GetRepositories()
-	
+
 	// Сортируем репозитории по приоритету
 	sort.Slice(repositories, func(i, j int) bool {
 		return repositories[i].Priority > repositories[j].Priority
 	})
-	
+
 	for _, repo := range repositories {
 		if !repo.Enabled {
 			continue
 		}
-		
+
 		packageInfo, downloadURL, err := pm.findInRepository(repo, packageName, version, arch, osName)
 		if err == nil {
 			return packageInfo, downloadURL, nil
 		}
 	}
-	
+
 	return nil, "", fmt.Errorf("package not found: %s", packageName)
 }
 
@@ -487,34 +501,34 @@ func (pm *PackageManager) findInRepository(repo Repository, packageName, version
 	if version != "" {
 		url += fmt.Sprintf("/%s", version)
 	}
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, "", err
 	}
-	
+
 	if repo.AuthToken != "" {
 		req.Header.Set("Authorization", "Bearer "+repo.AuthToken)
 	}
-	
+
 	resp, err := pm.httpClient.Do(req)
 	if err != nil {
 		return nil, "", err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, "", fmt.Errorf("package not found in repository")
 	}
-	
+
 	var packageInfo PackageInfo
 	if err := json.NewDecoder(resp.Body).Decode(&packageInfo); err != nil {
 		return nil, "", err
 	}
-	
-	downloadURL := fmt.Sprintf("%s/download/%s/%s/%s_%s.tar.zst", 
+
+	downloadURL := fmt.Sprintf("%s/download/%s/%s/%s_%s.tar.zst",
 		repo.URL, packageName, packageInfo.Version, arch, osName)
-	
+
 	return &packageInfo, downloadURL, nil
 }
 
@@ -524,37 +538,37 @@ func (pm *PackageManager) downloadPackage(url, packageName, version string) (str
 	if err := os.MkdirAll(cachePath, 0755); err != nil {
 		return "", fmt.Errorf("failed to create cache directory: %w", err)
 	}
-	
+
 	archivePath := filepath.Join(cachePath, "package.tar.zst")
-	
+
 	// Проверяем, есть ли уже файл в кеше
 	if _, err := os.Stat(archivePath); err == nil {
 		fmt.Printf("Используется кешированная версия пакета\n")
 		return archivePath, nil
 	}
-	
+
 	fmt.Printf("Скачивание пакета из %s\n", url)
-	
+
 	resp, err := pm.httpClient.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("failed to download package: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("failed to download package: HTTP %d", resp.StatusCode)
 	}
-	
+
 	outFile, err := os.Create(archivePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create cache file: %w", err)
 	}
 	defer outFile.Close()
-	
+
 	if _, err := io.Copy(outFile, resp.Body); err != nil {
 		return "", fmt.Errorf("failed to save package: %w", err)
 	}
-	
+
 	return archivePath, nil
 }
 
@@ -564,7 +578,7 @@ func (pm *PackageManager) loadManifestFromDir(dir string) (*PackageManifest, err
 	if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("manifest not found")
 	}
-	
+
 	return pm.configManager.LoadLocalConfig(dir)
 }
 
@@ -576,7 +590,7 @@ func (pm *PackageManager) checkDependencies(manifest *PackageManifest, dev bool)
 			dependencies[name] = version
 		}
 	}
-	
+
 	for depName, depVersion := range dependencies {
 		if _, exists := pm.getInstalledPackage(depName); !exists {
 			fmt.Printf("Установка зависимости: %s@%s\n", depName, depVersion)
@@ -585,7 +599,7 @@ func (pm *PackageManager) checkDependencies(manifest *PackageManifest, dev bool)
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -594,18 +608,18 @@ func (pm *PackageManager) executeHooks(hooks *PackageHooks, commands []string, w
 	if hooks == nil || len(commands) == 0 {
 		return nil
 	}
-	
+
 	for _, command := range commands {
 		cmd := exec.Command("sh", "-c", command)
 		if workDir != "" {
 			cmd.Dir = workDir
 		}
-		
+
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("hook command failed: %s: %w", command, err)
 		}
 	}
-	
+
 	return nil
 }
 
