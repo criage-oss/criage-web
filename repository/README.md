@@ -1,48 +1,50 @@
 # Criage Repository Server
 
-Сервер репозитория для хранения и управления пакетами Criage.
+Repository server for storing and managing Criage packages.
 
-## Возможности
+  🇬🇧 English Version | [🇷🇺 Русская версия](README_ru.md)
+  
+## Features
 
-- 📦 **Хранение пакетов** - автоматическое индексирование загружаемых пакетов
-- 🔍 **Поиск пакетов** - быстрый поиск по названию, описанию, автору
-- 📊 **Статистика** - отслеживание скачиваний и популярности пакетов
-- 🌐 **REST API** - полноценный API для интеграций
-- 🚀 **Веб интерфейс** - простой веб интерфейс для просмотра пакетов
-- 🔒 **Безопасность** - аутентификация для загрузки пакетов
+- 📦 **Package Storage** - automatic indexing of uploaded packages
+- 🔍 **Package Search** - fast search by name, description, author
+- 📊 **Statistics** - tracking downloads and package popularity
+- 🌐 **REST API** - full-featured API for integrations
+- 🚀 **Web Interface** - simple web interface for browsing packages
+- 🔒 **Security** - authentication for package uploads
 
-## Установка и запуск
+## Installation and Setup
 
-### Требования
+### Requirements
 
-- Go 1.21 или выше
+- Go 1.21 or higher
 - Git
 
-### Сборка и запуск
+### Build and Run
 
 ```bash
-# Клонируем репозиторий
+# Clone repository
 git clone <repository-url>
 cd criage/repository
 
-# Устанавливаем зависимости
+# Install dependencies
 go mod tidy
 
-# Собираем сервер
+# Build server
 go build -o criage-repository
 
-# Запускаем с конфигурацией по умолчанию
+# Run with default configuration
 ./criage-repository
 
-# Или с указанием файла конфигурации
+# Or specify configuration file
 ./criage-repository -config /path/to/config.json
 ```
 
-Сервер будет доступен по адресу: `http://localhost:8080`
+Server will be available at: `http://localhost:8080`
 
-## Конфигурация
+## Configuration
 
-При первом запуске создается файл конфигурации `config.json`:
+On first run, a configuration file `config.json` is created:
 
 ```json
 {
@@ -52,6 +54,7 @@ go build -o criage-repository
   "upload_token": "your-secret-token",
   "max_file_size": 104857600,
   "allowed_formats": [
+    "criage",
     "tar.zst",
     "tar.lz4", 
     "tar.xz",
@@ -63,68 +66,68 @@ go build -o criage-repository
 }
 ```
 
-### Параметры конфигурации
+### Configuration Parameters
 
-- `port` - порт HTTP сервера (по умолчанию 8080)
-- `storage_path` - путь к директории с пакетами (./packages)
-- `index_path` - путь к файлу индекса (./index.json)
-- `upload_token` - токен для загрузки пакетов
-- `max_file_size` - максимальный размер загружаемого файла в байтах
-- `allowed_formats` - разрешенные форматы архивов
-- `enable_cors` - включить CORS заголовки
-- `log_level` - уровень логирования
+- `port` - HTTP server port (default 8080)
+- `storage_path` - path to packages directory (./packages)
+- `index_path` - path to index file (./index.json)
+- `upload_token` - token for package uploads
+- `max_file_size` - maximum upload file size in bytes
+- `allowed_formats` - allowed archive formats
+- `enable_cors` - enable CORS headers
+- `log_level` - logging level
 
 ## API Endpoints
 
-### Информация о репозитории
+### Repository Information
 
 ```
 GET /api/v1/
 ```
 
-Возвращает информацию о репозитории, количество пакетов и поддерживаемые форматы.
+Returns repository information, package count, and supported formats.
 
-### Список пакетов
+### Package List
 
 ```
 GET /api/v1/packages?page=1&limit=20
 ```
 
-Возвращает список всех пакетов с пагинацией.
+Returns list of all packages with pagination.
 
-### Информация о пакете
+### Package Information
 
 ```
 GET /api/v1/packages/{name}
 ```
 
-Возвращает подробную информацию о пакете со всеми версиями.
+Returns detailed package information with all versions.
 
-### Информация о версии
+### Version Information
 
 ```
 GET /api/v1/packages/{name}/{version}
 ```
 
-Возвращает информацию о конкретной версии пакета.
+Returns information about specific package version.
 
-### Поиск пакетов
+### Package Search
 
 ```
 GET /api/v1/search?q={query}&limit=20
 ```
 
-Выполняет поиск пакетов по названию, описанию, ключевым словам.
+Searches packages by name, description, keywords.
 
-### Скачивание пакета
+### Package Download
 
 ```
 GET /api/v1/download/{name}/{version}/{filename}
 ```
 
-Скачивает файл пакета. Автоматически увеличивает счетчик скачиваний.
+Downloads package file. Automatically increments download counter.
 
-### Загрузка пакета
+### Package Upload
 
 ```
 POST /api/v1/upload
@@ -132,68 +135,68 @@ Headers: Authorization: Bearer {token}
 Content-Type: multipart/form-data
 ```
 
-Загружает новый пакет. Требует токен авторизации.
+Uploads new package. Requires authorization token.
 
-### Статистика
+### Statistics
 
 ```
 GET /api/v1/stats
 ```
 
-Возвращает статистику репозитория: популярные пакеты, количество скачиваний, разбивка по лицензиям и авторам.
+Returns repository statistics: popular packages, download counts, breakdown by licenses and authors.
 
-### Обновление индекса
+### Index Refresh
 
 ```
 POST /api/v1/refresh
 Headers: Authorization: Bearer {token}
 ```
 
-Принудительно обновляет индекс пакетов.
+Forces package index update.
 
-## Использование
+## Usage
 
-### Загрузка пакета через curl
+### Upload package via curl
 
 ```bash
 curl -X POST \
   -H "Authorization: Bearer your-secret-token" \
-  -F "package=@test-package-1.0.0.tar.zst" \
+  -F "package=@test-package-1.0.0.criage" \
   http://localhost:8080/api/v1/upload
 ```
 
-### Поиск пакетов
+### Search packages
 
 ```bash
 curl "http://localhost:8080/api/v1/search?q=test"
 ```
 
-### Скачивание пакета
+### Download package
 
 ```bash
-curl -O "http://localhost:8080/api/v1/download/test-package/1.0.0/test-package-1.0.0.tar.zst"
+curl -O "http://localhost:8080/api/v1/download/test-package/1.0.0/test-package-1.0.0.criage"
 ```
 
-## Интеграция с criage
+## Integration with criage
 
-Для публикации пакетов в репозиторий используйте команду:
+To publish packages to repository use command:
 
 ```bash
 criage publish --registry http://localhost:8080 --token your-secret-token
 ```
 
-Для установки пакетов из репозитория:
+To install packages from repository:
 
 ```bash
-criage config set registry http://localhost:8080
-criage install package-name
+criage repo add myrepo http://localhost:8080
+criage install package-name --repo myrepo
 ```
 
-## Структура данных
+## Data Structure
 
-### Индекс репозитория
+### Repository Index
 
-Сервер автоматически поддерживает JSON индекс всех пакетов в файле `index.json`:
+Server automatically maintains JSON index of all packages in `index.json` file:
 
 ```json
 {
@@ -212,8 +215,8 @@ criage install package-name
             {
               "os": "linux",
               "arch": "amd64",
-              "format": "tar.zst",
-              "filename": "package-1.0.0-linux-amd64.tar.zst",
+              "format": "criage",
+              "filename": "package-1.0.0.criage",
               "size": 1024,
               "checksum": "sha256:..."
             }
@@ -221,20 +224,37 @@ criage install package-name
         }
       ]
     }
+  },
+  "statistics": {
+    "total_downloads": 1250,
+    "packages_by_license": {
+      "MIT": 15,
+      "Apache-2.0": 8,
+      "GPL-3.0": 2
+    },
+    "packages_by_author": {
+      "John Doe": 5,
+      "Jane Smith": 3
+    },
+    "popular_packages": [
+      "web-framework",
+      "database-driver",
+      "logging-lib"
+    ]
   }
 }
 ```
 
-### Извлечение метаданных
+### Metadata Extraction
 
-Сервер автоматически извлекает метаданные из загружаемых пакетов criage:
+Server automatically extracts metadata from uploaded criage packages:
 
-- Манифест пакета (`criage.yaml`)
-- Манифест сборки (`build.json`)
-- Информация о сжатии
-- Зависимости и описания
+- Package manifest (`criage.yaml`)
+- Build manifest (`build.json`)
+- Compression information
+- Dependencies and descriptions
 
-## Развертывание
+## Deployment
 
 ### Docker
 
@@ -276,29 +296,164 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-## Мониторинг
+### Nginx Reverse Proxy
 
-Сервер логирует все HTTP запросы и операции с пакетами. Логи включают:
+```nginx
+server {
+    listen 80;
+    server_name packages.example.com;
 
-- HTTP запросы с временем выполнения
-- Загрузку новых пакетов
-- Ошибки индексации
-- Статистику скачиваний
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Handle large package uploads
+        client_max_body_size 100M;
+    }
+}
+```
 
-## Безопасность
+## Web Interface
 
-- Аутентификация через Bearer токены
-- Ограничение размера загружаемых файлов
-- Проверка форматов файлов
-- CORS поддержка для веб интерфейсов
+The repository includes a built-in web interface accessible at the server root URL. Features include:
 
-## Производительность
+- **Package Browser** - browse all available packages
+- **Search Interface** - search packages with filters
+- **Statistics Dashboard** - view download stats and popular packages
+- **Package Details** - detailed package information with download links
+- **Responsive Design** - works on desktop and mobile devices
 
-- Асинхронное обновление индекса
-- Кеширование метаданных пакетов
-- Эффективный поиск по индексу
-- Поддержка HTTP Keep-Alive
+### Web Interface Features
 
-## Лицензия
+- Real-time search with autocomplete
+- Package filtering by license, author, format
+- Download statistics visualization
+- Package dependency graphs
+- Mobile-responsive design
 
-MIT License - см. файл LICENSE для подробностей.
+## Monitoring
+
+Server logs all HTTP requests and package operations. Logs include:
+
+- HTTP requests with execution time
+- New package uploads
+- Indexing errors
+- Download statistics
+- Authentication attempts
+
+### Log Format
+
+```
+2024-01-15T10:30:45Z [INFO] HTTP 200 GET /api/v1/packages?page=1 - 45ms
+2024-01-15T10:31:12Z [INFO] Package uploaded: test-package-1.0.0.criage (1024 bytes)
+2024-01-15T10:31:30Z [INFO] Download: test-package/1.0.0/test-package-1.0.0.criage
+2024-01-15T10:32:01Z [ERROR] Failed to extract metadata from package: invalid format
+```
+
+## Security
+
+- Authentication via Bearer tokens
+- Upload file size limits
+- File format validation
+- CORS support for web interfaces
+- Rate limiting (configurable)
+- Input sanitization and validation
+
+### Security Best Practices
+
+1. **Use strong tokens** - Generate cryptographically secure upload tokens
+2. **HTTPS deployment** - Always use HTTPS in production
+3. **File validation** - Server validates package formats and checksums
+4. **Access logs** - Monitor access patterns for suspicious activity
+5. **Regular updates** - Keep dependencies updated
+
+## Performance
+
+- Asynchronous index updates
+- Package metadata caching
+- Efficient index search
+- HTTP Keep-Alive support
+- Concurrent request handling
+- Background cleanup tasks
+
+### Performance Tuning
+
+- **Index caching** - In-memory index for fast searches
+- **Parallel uploads** - Handle multiple uploads simultaneously
+- **Compression** - Serve compressed responses when supported
+- **Static file caching** - Cache web interface assets
+
+## Development
+
+### Building from Source
+
+```bash
+git clone https://github.com/Zu-Krein/criage.git
+cd criage/repository
+
+# Install dependencies
+go mod tidy
+
+# Run tests
+go test ./...
+
+# Build
+go build -o criage-repository
+
+# Run in development mode
+go run . -config config.json
+```
+
+### API Testing
+
+```bash
+# Test repository info
+curl http://localhost:8080/api/v1/
+
+# Test package search
+curl "http://localhost:8080/api/v1/search?q=test"
+
+# Test upload (requires token)
+curl -X POST \
+  -H "Authorization: Bearer test-token" \
+  -F "package=@test-package.criage" \
+  http://localhost:8080/api/v1/upload
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Port already in use** - Check if another service is using the configured port
+2. **Permission denied** - Ensure write permissions for packages directory
+3. **Upload failures** - Check file size limits and allowed formats
+4. **Index corruption** - Delete index.json to force regeneration
+
+### Debug Mode
+
+Run with debug logging:
+
+```bash
+./criage-repository -config config.json -log-level debug
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## Support
+
+- 📧 Email: <support@criage.ru>
+- 🐛 Issues: <https://github.com/Zu-Krein/criage/issues>
+- 📖 Documentation: <https://docs.criage.ru>
+
+## License
+
+MIT License - see LICENSE file for details.
