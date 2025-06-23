@@ -65,11 +65,17 @@ criage install package-name
 # Install specific version
 criage install package-name --version 1.2.3
 
+# Install from specific repository
+criage install package-name --repo myrepo
+
 # Global installation
 criage install package-name --global
 
 # Install with dev dependencies
 criage install package-name --dev
+
+# Install local .criage file
+criage install ./my-package-1.0.0.criage
 ```
 
 #### Removing Packages
@@ -95,8 +101,14 @@ criage update --all
 #### Search and Information
 
 ```bash
-# Find packages
+# Search packages in all repositories
 criage search keyword
+
+# Search packages in specific repository
+criage search keyword --repo myrepo
+
+# Show all available packages
+criage search "*" --all-repos
 
 # Show installed packages
 criage list
@@ -106,6 +118,9 @@ criage list --outdated
 
 # Detailed package information
 criage info package-name
+
+# Package information from specific repository
+criage info package-name --repo myrepo
 ```
 
 ### Package Development
@@ -134,6 +149,52 @@ criage build --format tar.zst --compression 6 --output my-package-1.0.0.criage
 criage publish --registry https://packages.example.com --token YOUR_TOKEN
 ```
 
+### Repository Management
+
+#### Adding Repositories
+
+```bash
+# Add new repository
+criage repo add myrepo https://packages.example.com
+
+# Add repository with authorization token
+criage repo add private-repo https://private.example.com --token YOUR_TOKEN
+
+# Add repository with priority
+criage repo add priority-repo https://priority.example.com --priority 10
+```
+
+#### Managing Repositories
+
+```bash
+# Show repository list
+criage repo list
+
+# Show detailed repository information
+criage repo info myrepo
+
+# Remove repository
+criage repo remove myrepo
+
+# Update indexes of all repositories
+criage repo update
+
+# Check repository availability
+criage repo check
+```
+
+#### Repository Priority
+
+```bash
+# Set repository priority (higher number = higher priority)
+criage repo priority myrepo 15
+
+# Package search order:
+# 1. Highest priority repositories
+# 2. Official repository (priority 10)
+# 3. User repositories (default priority 5)
+```
+
 ### Configuration
 
 #### View Settings
@@ -157,6 +218,12 @@ criage config set compression.level 6
 
 # Change number of parallel threads
 criage config set parallel 8
+
+# Set default repository
+criage config set default_registry https://packages.criage.ru
+
+# Configure network timeout
+criage config set network.timeout 30s
 ```
 
 ## Project Structure
@@ -253,6 +320,49 @@ hooks:
     {"os": "darwin", "arch": "amd64"},
     {"os": "windows", "arch": "amd64"}
   ]
+}
+```
+
+### Repository Configuration
+
+```json
+{
+  "repositories": [
+    {
+      "name": "official",
+      "url": "https://packages.criage.ru",
+      "priority": 10,
+      "enabled": true,
+      "type": "official"
+    },
+    {
+      "name": "company-internal",
+      "url": "https://packages.company.com",
+      "priority": 15,
+      "enabled": true,
+      "type": "private",
+      "auth": {
+        "token": "your-company-token"
+      }
+    },
+    {
+      "name": "community",
+      "url": "https://community.criage.org",
+      "priority": 5,
+      "enabled": true,
+      "type": "community"
+    }
+  ],
+  "cache": {
+    "ttl": "1h",
+    "max_size": "1GB",
+    "path": "~/.criage/cache"
+  },
+  "network": {
+    "timeout": "30s",
+    "retries": 3,
+    "parallel_downloads": 4
+  }
 }
 ```
 
@@ -417,6 +527,64 @@ MIT License - see [LICENSE](LICENSE) file for details.
 3. Commit changes (`git commit -m 'Add amazing feature'`)
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open Pull Request
+
+## Running Your Own Repository
+
+Criage supports creating custom repositories for private use or organizations.
+
+### Repository Quick Start
+
+```bash
+# Clone the project
+git clone https://github.com/Zu-Krein/criage.git
+cd criage/repository
+
+# Build repository server
+go build -o criage-repository
+
+# Run with default configuration
+./criage-repository
+```
+
+### Server Configuration
+
+Edit `config.json`:
+
+```json
+{
+  "port": 8081,
+  "storage_path": "./packages",
+  "upload_token": "your-secure-token",
+  "allowed_formats": ["criage", "tar.zst", "tar.lz4"],
+  "enable_cors": true
+}
+```
+
+### Uploading Packages to Repository
+
+```bash
+# Upload package via API
+curl -X POST http://localhost:8081/api/v1/upload \
+  -H "Authorization: Bearer your-secure-token" \
+  -F "file=@my-package-1.0.0.criage"
+
+# Or copy file to packages/ folder
+cp my-package-1.0.0.criage ./packages/
+
+# Refresh index
+curl -X POST http://localhost:8081/api/v1/refresh \
+  -H "Authorization: Bearer your-secure-token"
+```
+
+### Using Custom Repository
+
+```bash
+# Add repository
+criage repo add mycompany http://localhost:8081
+
+# Install packages from your repository
+criage install my-package --repo mycompany
+```
 
 ## Support
 

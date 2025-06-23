@@ -65,11 +65,17 @@ criage install package-name
 # Установить определенную версию
 criage install package-name --version 1.2.3
 
+# Установить из конкретного репозитория
+criage install package-name --repo myrepo
+
 # Глобальная установка
 criage install package-name --global
 
 # Установка с dev зависимостями
 criage install package-name --dev
+
+# Установить локальный файл .criage
+criage install ./my-package-1.0.0.criage
 ```
 
 #### Удаление пакетов
@@ -95,8 +101,14 @@ criage update --all
 #### Поиск и информация
 
 ```bash
-# Найти пакеты
+# Найти пакеты во всех репозиториях
 criage search keyword
+
+# Найти пакеты в конкретном репозитории
+criage search keyword --repo myrepo
+
+# Показать все доступные пакеты
+criage search "*" --all-repos
 
 # Показать установленные пакеты
 criage list
@@ -106,6 +118,9 @@ criage list --outdated
 
 # Подробная информация о пакете
 criage info package-name
+
+# Информация о пакете из конкретного репозитория
+criage info package-name --repo myrepo
 ```
 
 ### Разработка пакетов
@@ -134,6 +149,52 @@ criage build --format tar.zst --compression 6 --output my-package-1.0.0.criage
 criage publish --registry https://packages.example.com --token YOUR_TOKEN
 ```
 
+### Управление репозиториями
+
+#### Добавление репозиториев
+
+```bash
+# Добавить новый репозиторий
+criage repo add myrepo https://packages.example.com
+
+# Добавить репозиторий с токеном авторизации
+criage repo add private-repo https://private.example.com --token YOUR_TOKEN
+
+# Добавить репозиторий с приоритетом
+criage repo add priority-repo https://priority.example.com --priority 10
+```
+
+#### Управление репозиториями
+
+```bash
+# Показать список репозиториев
+criage repo list
+
+# Показать подробную информацию о репозитории
+criage repo info myrepo
+
+# Удалить репозиторий
+criage repo remove myrepo
+
+# Обновить индексы всех репозиториев
+criage repo update
+
+# Проверить доступность репозиториев
+criage repo check
+```
+
+#### Приоритет репозиториев
+
+```bash
+# Установить приоритет репозитория (чем выше число, тем выше приоритет)
+criage repo priority myrepo 15
+
+# При поиске пакетов используется следующий порядок:
+# 1. Репозитории с высшим приоритетом
+# 2. Официальный репозиторий (приоритет 10)
+# 3. Пользовательские репозитории (приоритет 5 по умолчанию)
+```
+
 ### Конфигурация
 
 #### Просмотр настроек
@@ -157,6 +218,12 @@ criage config set compression.level 6
 
 # Изменить количество параллельных потоков
 criage config set parallel 8
+
+# Установить репозиторий по умолчанию
+criage config set default_registry https://packages.criage.ru
+
+# Настроить тайм-аут для сетевых операций
+criage config set network.timeout 30s
 ```
 
 ## Структура проекта
@@ -253,6 +320,49 @@ hooks:
     {"os": "darwin", "arch": "amd64"},
     {"os": "windows", "arch": "amd64"}
   ]
+}
+```
+
+### Конфигурация репозиториев
+
+```json
+{
+  "repositories": [
+    {
+      "name": "official",
+      "url": "https://packages.criage.ru",
+      "priority": 10,
+      "enabled": true,
+      "type": "official"
+    },
+    {
+      "name": "company-internal",
+      "url": "https://packages.company.com",
+      "priority": 15,
+      "enabled": true,
+      "type": "private",
+      "auth": {
+        "token": "your-company-token"
+      }
+    },
+    {
+      "name": "community",
+      "url": "https://community.criage.org",
+      "priority": 5,
+      "enabled": true,
+      "type": "community"
+    }
+  ],
+  "cache": {
+    "ttl": "1h",
+    "max_size": "1GB",
+    "path": "~/.criage/cache"
+  },
+  "network": {
+    "timeout": "30s",
+    "retries": 3,
+    "parallel_downloads": 4
+  }
 }
 ```
 
@@ -417,6 +527,64 @@ MIT License - см. файл [LICENSE](LICENSE) для подробностей.
 3. Зафиксируйте изменения (`git commit -m 'Add amazing feature'`)
 4. Отправьте в ветку (`git push origin feature/amazing-feature`)
 5. Откройте Pull Request
+
+## Запуск собственного репозитория
+
+Criage поддерживает создание собственных репозиториев для частного использования или организаций.
+
+### Быстрый старт репозитория
+
+```bash
+# Клонировать проект
+git clone https://github.com/Zu-Krein/criage.git
+cd criage/repository
+
+# Собрать сервер репозитория
+go build -o criage-repository
+
+# Запустить с конфигурацией по умолчанию
+./criage-repository
+```
+
+### Конфигурация сервера
+
+Отредактируйте `config.json`:
+
+```json
+{
+  "port": 8081,
+  "storage_path": "./packages",
+  "upload_token": "your-secure-token",
+  "allowed_formats": ["criage", "tar.zst", "tar.lz4"],
+  "enable_cors": true
+}
+```
+
+### Загрузка пакетов в репозиторий
+
+```bash
+# Загрузить пакет через API
+curl -X POST http://localhost:8081/api/v1/upload \
+  -H "Authorization: Bearer your-secure-token" \
+  -F "file=@my-package-1.0.0.criage"
+
+# Или скопировать файл в папку packages/
+cp my-package-1.0.0.criage ./packages/
+
+# Обновить индекс
+curl -X POST http://localhost:8081/api/v1/refresh \
+  -H "Authorization: Bearer your-secure-token"
+```
+
+### Использование собственного репозитория
+
+```bash
+# Добавить репозиторий
+criage repo add mycompany http://localhost:8081
+
+# Установить пакеты из своего репозитория
+criage install my-package --repo mycompany
+```
 
 ## Поддержка
 

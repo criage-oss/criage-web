@@ -301,4 +301,4 @@ WantedBy=multi-user.target
 
 ## Лицензия
 
-MIT License - см. файл LICENSE для подробностей. 
+MIT License - см. файл LICENSE для подробностей.
