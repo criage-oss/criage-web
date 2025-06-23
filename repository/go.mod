@@ -1,6 +1,6 @@
 module criage-repository
 
-go 1.21
+go 1.24.4
 
 require (
 	criage v0.0.0
