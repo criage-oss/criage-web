@@ -13,7 +13,7 @@
 ### Core Functions
 
 - 🚀 **High Performance** - uses fast compression algorithms (Zstandard, LZ4)
-- 📦 **Multiple Archive Formats** - supports TAR.ZST, TAR.LZ4, TAR.XZ, TAR.GZ, ZIP
+- 📦 **Unified Package Extension** - all packages use `.criage` extension with embedded metadata about compression type
 - 🔧 **Dependency Management** - automatic dependency resolution and installation
 - 🌐 **Multiple Repositories** - support for multiple package sources
 - 🎯 **Cross-Platform** - supports Linux, macOS, Windows
@@ -120,11 +120,11 @@ criage create my-package --author "Your Name" --description "Package description
 #### Building Package
 
 ```bash
-# Build with default settings
+# Build with default settings (creates .criage file)
 criage build
 
-# Specify format and compression level
-criage build --format tar.zst --compression 6 --output my-package-1.0.0.tar.zst
+# Specify compression type and level
+criage build --format tar.zst --compression 6 --output my-package-1.0.0.criage
 ```
 
 #### Publishing Package

@@ -105,6 +105,24 @@ func (am *ArchiveManager) ExtractArchive(srcPath, dstPath string, format Archive
 
 // DetectFormat определяет формат архива по расширению
 func (am *ArchiveManager) DetectFormat(filename string) ArchiveFormat {
+	filename = strings.ToLower(filename)
+
+	// Если это файл .criage, пытаемся определить формат по метаданным
+	if strings.HasSuffix(filename, ".criage") {
+		if metadata, err := am.ExtractMetadataFromArchive(filename, FormatTarZst); err == nil && metadata.CompressionType != "" {
+			return am.parseCompressionType(metadata.CompressionType)
+		}
+		// Если не удалось извлечь метаданные, пробуем другие форматы
+		for _, format := range []ArchiveFormat{FormatTarLz4, FormatTarXz, FormatTarGz, FormatZip} {
+			if metadata, err := am.ExtractMetadataFromArchive(filename, format); err == nil && metadata.CompressionType != "" {
+				return am.parseCompressionType(metadata.CompressionType)
+			}
+		}
+		// Если ничего не помогло, используем tar.zst по умолчанию
+		return FormatTarZst
+	}
+
+	// Поддерживаем старые расширения для обратной совместимости
 	switch {
 	case strings.HasSuffix(filename, ".tar.zst"):
 		return FormatTarZst
@@ -118,6 +136,24 @@ func (am *ArchiveManager) DetectFormat(filename string) ArchiveFormat {
 		return FormatZip
 	default:
 		return FormatTarZst // По умолчанию
+	}
+}
+
+// parseCompressionType преобразует строку типа сжатия в ArchiveFormat
+func (am *ArchiveManager) parseCompressionType(compressionType string) ArchiveFormat {
+	switch compressionType {
+	case "tar.zst":
+		return FormatTarZst
+	case "tar.lz4":
+		return FormatTarLz4
+	case "tar.xz":
+		return FormatTarXz
+	case "tar.gz":
+		return FormatTarGz
+	case "zip":
+		return FormatZip
+	default:
+		return FormatTarZst
 	}
 }
 

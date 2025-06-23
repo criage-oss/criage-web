@@ -47,7 +47,7 @@ func loadConfig(configPath string) (*Config, error) {
 		UploadToken: "your-secret-token",
 		MaxFileSize: 100 * 1024 * 1024, // 100MB
 		AllowedFormats: []string{
-			"tar.zst", "tar.lz4", "tar.xz", "tar.gz", "zip",
+			"criage", "tar.zst", "tar.lz4", "tar.xz", "tar.gz", "zip",
 		},
 		EnableCORS: true,
 		LogLevel:   "info",

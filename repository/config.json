@@ -2,9 +2,10 @@
   "port": 8081,
   "storage_path": "./packages",
   "index_path": "./index.json",
-  "upload_token": "your-secret-token",
+  "upload_token": "test-token",
   "max_file_size": 104857600,
   "allowed_formats": [
+    "criage",
     "tar.zst",
     "tar.lz4",
     "tar.xz",

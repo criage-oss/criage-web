@@ -415,7 +415,7 @@ func (pm *PackageManager) BuildPackage(outputPath, format string, compressionLev
 
 	// Определяем выходной файл
 	if outputPath == "" {
-		outputPath = fmt.Sprintf("%s-%s.%s", manifest.Name, manifest.Version, format)
+		outputPath = fmt.Sprintf("%s-%s.criage", manifest.Name, manifest.Version)
 	}
 
 	// Создаем структуру метаданных для встраивания в архив
