@@ -1,250 +1,250 @@
 <div align="center">
   <img src="logo.png" alt="Criage Logo" width="200">
   
-# Criage - Высокопроизводительный пакетный менеджер
+# Criage - High-Performance Package Manager
   
-  Criage - это современный пакетный менеджер, написанный на Go, обеспечивающий быструю установку, обновление и управление пакетами с поддержкой различных форматов сжатия.
+  Criage is a modern package manager written in Go, providing fast installation, updates, and package management with support for various compression formats.
   
-  [🇬🇧 English Version](README_en.md) | 🇷🇺 Русская версия
+  🇬🇧 English Version | [🇷🇺 Русская версия](README_ru.md)
 </div>
 
-## Возможности
+## Features
 
-### Основные функции
+### Core Functions
 
-- 🚀 **Высокая производительность** - использование быстрых алгоритмов сжатия (Zstandard, LZ4)
-- 📦 **Единое расширение пакетов** - все пакеты используют расширение `.criage` с встроенными метаданными о типе сжатия
-- 🔧 **Управление зависимостями** - автоматическое разрешение и установка зависимостей
-- 🌐 **Множественные репозитории** - поддержка нескольких источников пакетов
-- 🎯 **Кроссплатформенность** - поддержка Linux, macOS, Windows
-- ⚡ **Параллельные операции** - многопоточная обработка для ускорения
+- 🚀 **High Performance** - uses fast compression algorithms (Zstandard, LZ4)
+- 📦 **Unified Package Extension** - all packages use `.criage` extension with embedded metadata about compression type
+- 🔧 **Dependency Management** - automatic dependency resolution and installation
+- 🌐 **Multiple Repositories** - support for multiple package sources
+- 🎯 **Cross-Platform** - supports Linux, macOS, Windows
+- ⚡ **Parallel Operations** - multithreaded processing for acceleration
 
-### Управление пакетами
+### Package Management
 
-- Установка и удаление пакетов
-- Обновление до последних версий  
-- Поиск пакетов в репозиториях
-- Просмотр информации о пакетах
-- Глобальная и локальная установка
+- Install and remove packages
+- Update to latest versions
+- Search packages in repositories
+- View package information
+- Global and local installation
 
-### Разработка пакетов
+### Package Development
 
-- Создание новых пакетов из шаблонов
-- Сборка пакетов с настраиваемыми скриптами
-- Публикация в репозитории
-- Хуки жизненного цикла (pre/post install/remove)
-- Манифесты сборки
+- Create new packages from templates
+- Build packages with customizable scripts
+- Publish to repositories
+- Lifecycle hooks (pre/post install/remove)
+- Build manifests
 
-## Установка
+## Installation
 
-### Из исходников
+### From Source
 
 ```bash
-git clone https://github.com/your-org/criage.git
+git clone https://github.com/Zu-Krein/criage.git
 cd criage
 go build -o criage
 sudo mv criage /usr/local/bin/
 ```
 
-### Проверка установки
+### Verify Installation
 
 ```bash
 criage --version
 ```
 
-## Использование
+## Usage
 
-### Основные команды
+### Basic Commands
 
-#### Установка пакетов
+#### Installing Packages
 
 ```bash
-# Установить пакет
+# Install package
 criage install package-name
 
-# Установить определенную версию
+# Install specific version
 criage install package-name --version 1.2.3
 
-# Установить из конкретного репозитория
+# Install from specific repository
 criage install package-name --repo myrepo
 
-# Глобальная установка
+# Global installation
 criage install package-name --global
 
-# Установка с dev зависимостями
+# Install with dev dependencies
 criage install package-name --dev
 
-# Установить локальный файл .criage
+# Install local .criage file
 criage install ./my-package-1.0.0.criage
 ```
 
-#### Удаление пакетов
+#### Removing Packages
 
 ```bash
-# Удалить пакет
+# Remove package
 criage uninstall package-name
 
-# Полное удаление с конфигурацией
+# Complete removal with configuration
 criage uninstall package-name --purge
 ```
 
-#### Обновление пакетов
+#### Updating Packages
 
 ```bash
-# Обновить конкретный пакет
+# Update specific package
 criage update package-name
 
-# Обновить все пакеты
+# Update all packages
 criage update --all
 ```
 
-#### Поиск и информация
+#### Search and Information
 
 ```bash
-# Найти пакеты во всех репозиториях
+# Search packages in all repositories
 criage search keyword
 
-# Найти пакеты в конкретном репозитории
+# Search packages in specific repository
 criage search keyword --repo myrepo
 
-# Показать все доступные пакеты
+# Show all available packages
 criage search "*" --all-repos
 
-# Показать установленные пакеты
+# Show installed packages
 criage list
 
-# Показать только устаревшие пакеты
+# Show only outdated packages
 criage list --outdated
 
-# Подробная информация о пакете
+# Detailed package information
 criage info package-name
 
-# Информация о пакете из конкретного репозитория
+# Package information from specific repository
 criage info package-name --repo myrepo
 ```
 
-### Разработка пакетов
+### Package Development
 
-#### Создание нового пакета
+#### Creating New Package
 
 ```bash
-# Создать пакет из базового шаблона
+# Create package from basic template
 criage create my-package --author "Your Name" --description "Package description"
 ```
 
-#### Сборка пакета
+#### Building Package
 
 ```bash
-# Собрать с настройками по умолчанию (создаст файл .criage)
+# Build with default settings (creates .criage file)
 criage build
 
-# Указать тип сжатия и уровень сжатия
+# Specify compression type and level
 criage build --format tar.zst --compression 6 --output my-package-1.0.0.criage
 ```
 
-#### Публикация пакета
+#### Publishing Package
 
 ```bash
-# Опубликовать в репозитории
+# Publish to repository
 criage publish --registry https://packages.example.com --token YOUR_TOKEN
 ```
 
-### Управление репозиториями
+### Repository Management
 
-#### Добавление репозиториев
+#### Adding Repositories
 
 ```bash
-# Добавить новый репозиторий
+# Add new repository
 criage repo add myrepo https://packages.example.com
 
-# Добавить репозиторий с токеном авторизации
+# Add repository with authorization token
 criage repo add private-repo https://private.example.com --token YOUR_TOKEN
 
-# Добавить репозиторий с приоритетом
+# Add repository with priority
 criage repo add priority-repo https://priority.example.com --priority 10
 ```
 
-#### Управление репозиториями
+#### Managing Repositories
 
 ```bash
-# Показать список репозиториев
+# Show repository list
 criage repo list
 
-# Показать подробную информацию о репозитории
+# Show detailed repository information
 criage repo info myrepo
 
-# Удалить репозиторий
+# Remove repository
 criage repo remove myrepo
 
-# Обновить индексы всех репозиториев
+# Update indexes of all repositories
 criage repo update
 
-# Проверить доступность репозиториев
+# Check repository availability
 criage repo check
 ```
 
-#### Приоритет репозиториев
+#### Repository Priority
 
 ```bash
-# Установить приоритет репозитория (чем выше число, тем выше приоритет)
+# Set repository priority (higher number = higher priority)
 criage repo priority myrepo 15
 
-# При поиске пакетов используется следующий порядок:
-# 1. Репозитории с высшим приоритетом
-# 2. Официальный репозиторий (приоритет 10)
-# 3. Пользовательские репозитории (приоритет 5 по умолчанию)
+# Package search order:
+# 1. Highest priority repositories
+# 2. Official repository (priority 10)
+# 3. User repositories (default priority 5)
 ```
 
-### Конфигурация
+### Configuration
 
-#### Просмотр настроек
+#### View Settings
 
 ```bash
-# Показать все настройки
+# Show all settings
 criage config list
 
-# Получить значение конкретной настройки
+# Get specific setting value
 criage config get cache_path
 ```
 
-#### Изменение настроек
+#### Change Settings
 
 ```bash
-# Изменить путь кеша
+# Change cache path
 criage config set cache_path /custom/cache/path
 
-# Изменить уровень сжатия по умолчанию
+# Change default compression level
 criage config set compression.level 6
 
-# Изменить количество параллельных потоков
+# Change number of parallel threads
 criage config set parallel 8
 
-# Установить репозиторий по умолчанию
+# Set default repository
 criage config set default_registry https://packages.criage.ru
 
-# Настроить тайм-аут для сетевых операций
+# Configure network timeout
 criage config set network.timeout 30s
 ```
 
-## Структура проекта
+## Project Structure
 
 ```
 criage/
-├── main.go              # Основная точка входа
-├── commands.go          # Реализация CLI команд
-├── go.mod               # Go модуль
-├── go.sum               # Зависимости
-└── pkg/                 # Основные пакеты
-    ├── types.go         # Структуры данных
-    ├── archive.go       # Работа с архивами
-    ├── config.go        # Управление конфигурацией
-    ├── package_manager.go        # Основная логика пакетного менеджера
-    └── package_manager_helpers.go # Вспомогательные функции
+├── main.go              # Main entry point
+├── commands.go          # CLI command implementations
+├── go.mod               # Go module
+├── go.sum               # Dependencies
+└── pkg/                 # Core packages
+    ├── types.go         # Data structures
+    ├── archive.go       # Archive operations
+    ├── config.go        # Configuration management
+    ├── package_manager.go        # Main package manager logic
+    └── package_manager_helpers.go # Helper functions
 ```
 
-## Форматы файлов
+## File Formats
 
-### Манифест пакета (criage.yaml)
+### Package Manifest (criage.yaml)
 
 ```yaml
 name: my-package
@@ -296,7 +296,7 @@ hooks:
     - echo "Package installed successfully"
 ```
 
-### Конфигурация сборки (build.json)
+### Build Configuration (build.json)
 
 ```json
 {
@@ -323,7 +323,7 @@ hooks:
 }
 ```
 
-### Конфигурация репозиториев
+### Repository Configuration
 
 ```json
 {
@@ -366,84 +366,84 @@ hooks:
 }
 ```
 
-## Встраивание метаданных в архивы
+## Embedding Metadata in Archives
 
-Criage поддерживает встраивание метаданных пакетов (`criage.yaml` и `build.json`) непосредственно в архивы. Это позволяет получать информацию о пакете без необходимости его распаковки.
+Criage supports embedding package metadata (`criage.yaml` and `build.json`) directly into archives. This allows getting package information without needing to extract it.
 
-### Поддерживаемые форматы
+### Supported Formats
 
-#### TAR архивы (tar.zst, tar.lz4, tar.xz, tar.gz)
+#### TAR Archives (tar.zst, tar.lz4, tar.xz, tar.gz)
 
-- Использует **PAX Extended Headers** - стандартный механизм для хранения дополнительных метаданных
-- Совместимо с большинством современных архиваторов
-- Метаданные хранятся в полях `criage.metadata`, `criage.package_manifest`, `criage.build_manifest`
+- Uses **PAX Extended Headers** - standard mechanism for storing additional metadata
+- Compatible with most modern archivers
+- Metadata stored in fields `criage.metadata`, `criage.package_manifest`, `criage.build_manifest`
 
-#### ZIP архивы
+#### ZIP Archives
 
-- Использует **ZIP Comment** для основных метаданных
-- Дополнительно создает файл `.criage_metadata.json` внутри архива
-- Полная обратная совместимость
+- Uses **ZIP Comment** for basic metadata
+- Additionally creates `.criage_metadata.json` file inside archive
+- Full backward compatibility
 
-### Встраиваемые данные
+### Embedded Data
 
-- **Манифест пакета** (`criage.yaml`) - название, версия, зависимости, автор
-- **Манифест сборки** (`build.json`) - настройки сборки, целевые платформы
-- **Тип сжатия** - формат и уровень сжатия
-- **Метаданные создания** - дата, версия criage
-- **Контрольные суммы** - для проверки целостности
+- **Package Manifest** (`criage.yaml`) - name, version, dependencies, author
+- **Build Manifest** (`build.json`) - build settings, target platforms
+- **Compression Type** - format and compression level
+- **Creation Metadata** - date, criage version
+- **Checksums** - for integrity verification
 
-### Примеры использования
+### Usage Examples
 
-#### Создание архива с метаданными
+#### Creating Archive with Metadata
 
 ```bash
-# Собрать пакет с автоматическим встраиванием метаданных
+# Build package with automatic metadata embedding
 criage build --format tar.zst --compression 6
 
-# Результат: test-package-1.0.0.criage с встроенными метаданными
+# Result: test-package-1.0.0.tar.zst with embedded metadata
 ```
 
-#### Просмотр метаданных архива
+#### Viewing Archive Metadata
 
 ```bash
-# Показать все метаданные архива
-criage metadata test-package-1.0.0.criage
+# Show all archive metadata
+criage metadata test-package-1.0.0.tar.zst
 
-# Пример вывода:
-# === Метаданные архива test-package-1.0.0.criage ===
-# Тип сжатия: tar.zst
-# Создан: 2024-01-15T10:30:45Z
-# Создано с помощью: criage/1.0.0
+# Example output:
+# === Archive Metadata test-package-1.0.0.tar.zst ===
+# Compression Type: tar.zst
+# Created: 2024-01-15T10:30:45Z
+# Created with: criage/1.0.0
 # 
-# === Манифест пакета ===
-# Название: test-package
-# Версия: 1.0.0
-# Описание: Тестовый пакет
-# Автор: Developer Name
-# Лицензия: MIT
-# Зависимости:
+# === Package Manifest ===
+# Name: test-package
+# Version: 1.0.0
+# Description: Test package
+# Author: Developer Name
+# License: MIT
+# Dependencies:
 #   - some-lib: ^1.0.0
 # 
-# === Манифест сборки ===
-# Скрипт сборки: echo Building...
-# Выходная директория: ./build
-# Формат сжатия: tar.zst (уровень 6)
-# Целевые платформы:
+# === Build Manifest ===
+# Build Script: echo Building...
+# Output Directory: ./build
+# Compression Format: tar.zst (level 6)
+# Target Platforms:
 #   - linux/amd64
 #   - linux/arm64
 ```
 
-### Преимущества встраивания метаданных
+### Benefits of Metadata Embedding
 
-1. **Самодостаточность** - архив содержит всю необходимую информацию
-2. **Быстрый доступ** - не нужно распаковывать для получения информации
-3. **Стандартность** - использует стандартные механизмы архивных форматов
-4. **Совместимость** - работает с любыми архиваторами, поддерживающими PAX
-5. **Безопасность** - встроенные контрольные суммы для проверки целостности
+1. **Self-Sufficiency** - archive contains all necessary information
+2. **Fast Access** - no need to extract for information retrieval
+3. **Standards Compliance** - uses standard archive format mechanisms
+4. **Compatibility** - works with any archivers supporting PAX
+5. **Security** - built-in checksums for integrity verification
 
-### Технические детали
+### Technical Details
 
-#### Структура метаданных
+#### Metadata Structure
 
 ```json
 {
@@ -463,92 +463,92 @@ criage metadata test-package-1.0.0.criage
 }
 ```
 
-#### Расположение в архиве
+#### Location in Archive
 
-- **TAR**: PAX Extended Headers в начале архива
-- **ZIP**: Комментарий архива + файл `.criage_metadata.json`
+- **TAR**: PAX Extended Headers at beginning of archive
+- **ZIP**: Archive comment + separate `.criage_metadata.json` file
 
-## Производительность
+## Performance
 
-Criage оптимизирован для максимальной производительности:
+Criage is optimized for maximum performance:
 
-- **Zstandard сжатие** - до 3x быстрее чем gzip при лучшем сжатии
-- **LZ4 сжатие** - экстремально быстрое сжатие/распаковка
-- **Параллельная обработка** - использование всех доступных CPU ядер
-- **Умное кеширование** - избежание повторных загрузок
-- **Эффективное разрешение зависимостей** - минимизация сетевых запросов
+- **Zstandard compression** - up to 3x faster than gzip with better compression
+- **LZ4 compression** - extremely fast compression/decompression
+- **Parallel processing** - utilizes all available CPU cores
+- **Smart caching** - avoids repeated downloads
+- **Efficient dependency resolution** - minimizes network requests
 
-## Сравнение форматов сжатия
+## Compression Format Comparison
 
-| Формат | Скорость сжатия | Скорость распаковки | Размер | Использование |
-|--------|----------------|---------------------|--------|---------------|
-| tar.zst | Средняя | Очень быстрая | Отличное | По умолчанию |
-| tar.lz4 | Очень быстрая | Очень быстрая | Среднее | Быстрые операции |
-| tar.xz | Медленная | Средняя | Отличное | Минимальный размер |
-| tar.gz | Средняя | Средняя | Хорошее | Совместимость |
-| zip | Средняя | Быстрая | Хорошее | Windows совместимость |
+| Format | Compression Speed | Decompression Speed | Size | Use Case |
+|--------|------------------|-------------------|------|----------|
+| tar.zst | Medium | Very Fast | Excellent | Default |
+| tar.lz4 | Very Fast | Very Fast | Average | Fast operations |
+| tar.xz | Slow | Medium | Excellent | Minimal size |
+| tar.gz | Medium | Medium | Good | Compatibility |
+| zip | Medium | Fast | Good | Windows compatibility |
 
-## Разработка
+## Development
 
-### Требования
+### Requirements
 
-- Go 1.21 или выше
+- Go 1.21 or higher
 - Git
 
-### Сборка из исходников
+### Building from Source
 
 ```bash
-git clone https://github.com/your-org/criage.git
+git clone https://github.com/Zu-Krein/criage.git
 cd criage
 go mod tidy
 go build -o criage
 ```
 
-### Запуск тестов
+### Running Tests
 
 ```bash
 go test ./...
 ```
 
-### Форматирование кода
+### Code Formatting
 
 ```bash
 go fmt ./...
 ```
 
-## Лицензия
+## License
 
-MIT License - см. файл [LICENSE](LICENSE) для подробностей.
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## Вклад в проект
+## Contributing
 
-1. Форкните репозиторий
-2. Создайте ветку для новой функции (`git checkout -b feature/amazing-feature`)
-3. Зафиксируйте изменения (`git commit -m 'Add amazing feature'`)
-4. Отправьте в ветку (`git push origin feature/amazing-feature`)
-5. Откройте Pull Request
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
-## Запуск собственного репозитория
+## Running Your Own Repository
 
-Criage поддерживает создание собственных репозиториев для частного использования или организаций.
+Criage supports creating custom repositories for private use or organizations.
 
-### Быстрый старт репозитория
+### Repository Quick Start
 
 ```bash
-# Клонировать проект
+# Clone the project
 git clone https://github.com/Zu-Krein/criage.git
 cd criage/repository
 
-# Собрать сервер репозитория
+# Build repository server
 go build -o criage-repository
 
-# Запустить с конфигурацией по умолчанию
+# Run with default configuration
 ./criage-repository
 ```
 
-### Конфигурация сервера
+### Server Configuration
 
-Отредактируйте `config.json`:
+Edit `config.json`:
 
 ```json
 {
@@ -560,34 +560,34 @@ go build -o criage-repository
 }
 ```
 
-### Загрузка пакетов в репозиторий
+### Uploading Packages to Repository
 
 ```bash
-# Загрузить пакет через API
+# Upload package via API
 curl -X POST http://localhost:8081/api/v1/upload \
   -H "Authorization: Bearer your-secure-token" \
   -F "file=@my-package-1.0.0.criage"
 
-# Или скопировать файл в папку packages/
+# Or copy file to packages/ folder
 cp my-package-1.0.0.criage ./packages/
 
-# Обновить индекс
+# Refresh index
 curl -X POST http://localhost:8081/api/v1/refresh \
   -H "Authorization: Bearer your-secure-token"
 ```
 
-### Использование собственного репозитория
+### Using Custom Repository
 
 ```bash
-# Добавить репозиторий
+# Add repository
 criage repo add mycompany http://localhost:8081
 
-# Установить пакеты из своего репозитория
+# Install packages from your repository
 criage install my-package --repo mycompany
 ```
 
-## Поддержка
+## Support
 
 - 📧 Email: <support@criage.ru>
-- 🐛 Баги: <https://github.com/Zu-Krein/criage/issues>
-- 📖 Документация: <https://docs.criage.ru>
+- 🐛 Issues: <https://github.com/Zu-Krein/criage/issues>
+- 📖 Documentation: <https://docs.criage.ru>
