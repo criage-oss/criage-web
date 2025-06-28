@@ -1,0 +1,48 @@
+# Robots.txt для сайта документации Criage
+# https://criage.ru/
+
+# Разрешить доступ всем поисковым роботам
+User-agent: *
+Allow: /
+
+# Запретить индексацию служебных файлов и папок (если есть)
+Disallow: /logs/
+Disallow: /private/
+Disallow: /tmp/
+Disallow: /.git/
+Disallow: /*.log$
+
+# Специальные правила для основных поисковиков
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Yandex
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Блокировка нежелательных ботов
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Ссылка на карту сайта
+Sitemap: https://criage.ru/sitemap.xml
+
+# Альтернативные форматы (если понадобятся в будущем)
+# Sitemap: https://criage.ru/sitemap_index.xml
+
+# Контактная информация (опционально)
+# Webmaster: mailto:webmaster@criage.ru
+
+# Время задержки между запросами (в секундах)
+# Crawl-delay: 1 
