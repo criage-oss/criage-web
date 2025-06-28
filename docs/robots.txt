@@ -42,7 +42,7 @@ Sitemap: https://criage.ru/sitemap.xml
 # Sitemap: https://criage.ru/sitemap_index.xml
 
 # Контактная информация (опционально)
-# Webmaster: mailto:webmaster@criage.ru
+# Webmaster: mailto:kibarayz@gmail.com
 
 # Время задержки между запросами (в секундах)
 # Crawl-delay: 1 
