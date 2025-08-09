@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Примеры CI/CD - Criage</title>
+    <meta name="description" content="Примеры интеграции CI/CD для пакетного менеджера Criage - GitLab CI, Jenkins, GitHub Actions">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="keywords" content="criage, ci/cd, gitlab, jenkins, github actions, автоматизация, управление пакетами">
+    <meta name="author" content="Criage Team">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Примеры CI/CD - Criage">
+    <meta property="og:description" content="Примеры интеграции Criage в CI/CD конвейеры">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://criage.ru/docs/cicd-examples_ru.html">
+    <meta property="og:image" content="https://criage.ru/docs/logo.png">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Примеры CI/CD - Criage">
+    <meta name="twitter:description" content="Примеры интеграции Criage в CI/CD конвейеры">
+    <meta name="twitter:image" content="https://criage.ru/docs/logo.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #0066cc;
+        }
+
+        .language-switcher {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            padding: 0.25rem 0.5rem;
+            text-decoration: none;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        /* Main Layout */
+        .docs-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-nav a {
+            text-decoration: none;
+            color: #666;
+            padding: 0.5rem 0;
+            display: block;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            color: #0066cc;
+            font-weight: 500;
+        }
+
+        /* Content */
+        .docs-content {
+            max-width: none;
+        }
+
+        .docs-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .docs-content h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+            color: #333;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+
+        .docs-content h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 0.75rem 0;
+            color: #444;
+        }
+
+        .docs-content h4 {
+            font-size: 1.2rem;
+            margin: 1rem 0 0.5rem 0;
+            color: #555;
+        }
+
+        .docs-content p {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+
+        .docs-content ul, .docs-content ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .docs-content li {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            position: relative;
+            margin: 1.5rem 0;
+        }
+
+        .code-block pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #555;
+        }
+
+        .inline-code {
+            background: #f1f3f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            color: #e91e63;
+        }
+
+        /* File Header */
+        .file-header {
+            background: #2d3748;
+            color: #cbd5e0;
+            padding: 0.75rem 1rem;
+            border-radius: 8px 8px 0 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-header::before {
+            content: "📄";
+        }
+
+        .file-header + .code-block pre {
+            border-radius: 0 0 8px 8px;
+            margin-top: 0;
+        }
+
+        .file-header + .code-block {
+            margin-top: 0;
+        }
+
+        /* Platform Cards */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .platform-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .platform-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0;
+            color: #0066cc;
+        }
+
+        .platform-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Notes and Alerts */
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .tip {
+            background: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Use Case Cards */
+        .use-case {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .use-case h4 {
+            color: #0066cc;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .docs-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                order: 2;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .platform-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Syntax highlighting */
+        .yaml-key { color: #0451a5; }
+        .yaml-string { color: #0a6b29; }
+        .yaml-comment { color: #008000; font-style: italic; }
+        .bash-command { color: #0451a5; }
+        .bash-option { color: #795e26; }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <a href="index_ru.html" class="logo">
+                <img src="logo.png" alt="Criage Logo">
+                Criage
+            </a>
+            <div class="nav-content">
+                <ul class="nav-links">
+                    <li><a href="index_ru.html">Главная</a></li>
+                    <li><a href="docs_ru.html">Документация клиента</a></li>
+                    <li><a href="repository-server_ru.html">Сервер репозитория</a></li>
+                    <li><a href="mcp-server_ru.html">MCP Server</a></li>
+                    <li><a href="cicd-examples_ru.html">Примеры CI/CD</a></li>
+                    <li><a href="https://github.com/criage-oss/criage-client" target="_blank">GitHub</a></li>
+                </ul>
+                <div class="language-switcher">
+                    <a href="cicd-examples.html" class="lang-btn">EN</a>
+                    <a href="cicd-examples_ru.html" class="lang-btn active">RU</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="docs-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h3>Содержание</h3>
+                <ul class="sidebar-nav">
+                    <li><a href="#overview" class="active">Обзор</a></li>
+                    <li><a href="#gitlab-ci">GitLab CI</a></li>
+                    <li><a href="#jenkins">Jenkins</a></li>
+                    <li><a href="#github-actions">GitHub Actions</a></li>
+                    <li><a href="#best-practices">Лучшие практики</a></li>
+                    <li><a href="#use-cases">Сценарии использования</a></li>
+                    <li><a href="#troubleshooting">Решение проблем</a></li>
+                </ul>
+            </aside>
+
+            <!-- Content -->
+            <main class="docs-content">
+                <h1>Примеры интеграции CI/CD</h1>
+                <p>Полное руководство по интеграции пакетного менеджера Criage в ваши CI/CD конвейеры.</p>
+
+                <section id="overview">
+                    <h2>Обзор</h2>
+                    <p>Criage может быть легко интегрирован в различные CI/CD платформы для автоматизации управления пакетами, установки зависимостей и публикации пакетов. Это руководство предоставляет практические примеры для популярных платформ.</p>
+                    
+                    <div class="platform-grid">
+                        <div class="platform-card">
+                            <h3><span class="platform-icon">🦊</span>GitLab CI</h3>
+                            <p>Полные примеры конвейеров GitLab CI с интеграцией Docker и многоэтапными сборками.</p>
+                        </div>
+                        <div class="platform-card">
+                            <h3><span class="platform-icon">🏗️</span>Jenkins</h3>
+                            <p>Скрипты конвейеров Jenkins и конфигурации заданий для автоматизированного управления пакетами.</p>
+                        </div>
+                        <div class="platform-card">
+                            <h3><span class="platform-icon">🐙</span>GitHub Actions</h3>
+                            <p>Рабочие процессы GitHub Actions для сборки, тестирования и публикации пакетов.</p>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        <strong>Предварительные требования:</strong> Эти примеры предполагают, что у вас настроен и доступен из CI/CD среды сервер репозитория Criage. См. <a href="repository-server_ru.html">документацию сервера репозитория</a> для инструкций по установке.
+                    </div>
+                </section>
+
+                <section id="gitlab-ci">
+                    <h2>GitLab CI</h2>
+                    <p>Примеры интеграции GitLab CI для различных сценариев использования.</p>
+
+                    <h3>Базовая установка пакетов</h3>
+                    <p>Простой конвейер, который устанавливает зависимости с помощью Criage:</p>
+
+                    <div class="file-header">.gitlab-ci.yml</div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre><span class="yaml-key">stages</span>:
+  - <span class="yaml-string">dependencies</span>
+  - <span class="yaml-string">build</span>
+  - <span class="yaml-string">test</span>
+
+<span class="yaml-key">variables</span>:
+  <span class="yaml-key">CRIAGE_REPO_URL</span>: <span class="yaml-string">"https://packages.example.com"</span>
+
+<span class="yaml-key">install_dependencies</span>:
+  <span class="yaml-key">stage</span>: <span class="yaml-string">dependencies</span>
+  <span class="yaml-key">image</span>: <span class="yaml-string">golang:1.21</span>
+  <span class="yaml-key">before_script</span>:
+    - <span class="yaml-string">apt-get update && apt-get install -y wget</span>
+    - <span class="yaml-string">wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64</span>
+    - <span class="yaml-string">chmod +x criage && mv criage /usr/local/bin/</span>
+  <span class="yaml-key">script</span>:
+    - <span class="yaml-string">criage repo add main $CRIAGE_REPO_URL</span>
+    - <span class="yaml-string">criage install --from-config</span>
+  <span class="yaml-key">artifacts</span>:
+    <span class="yaml-key">paths</span>:
+      - <span class="yaml-string">./packages/</span>
+    <span class="yaml-key">expire_in</span>: <span class="yaml-string">1 hour</span>
+
+<span class="yaml-key">build_project</span>:
+  <span class="yaml-key">stage</span>: <span class="yaml-string">build</span>
+  <span class="yaml-key">image</span>: <span class="yaml-string">golang:1.21</span>
+  <span class="yaml-key">dependencies</span>:
+    - <span class="yaml-string">install_dependencies</span>
+  <span class="yaml-key">script</span>:
+    - <span class="yaml-string">go build -o app .</span>
+  <span class="yaml-key">artifacts</span>:
+    <span class="yaml-key">paths</span>:
+      - <span class="yaml-string">app</span></pre>
+                    </div>
+
+                    <h3>Конвейер публикации пакетов</h3>
+                    <p>Продвинутый конвейер, который собирает и публикует пакеты в ваш репозиторий:</p>
+
+                    <div class="file-header">.gitlab-ci.yml</div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre><span class="yaml-key">stages</span>:
+  - <span class="yaml-string">build</span>
+  - <span class="yaml-string">package</span>
+  - <span class="yaml-string">publish</span>
+
+<span class="yaml-key">variables</span>:
+  <span class="yaml-key">CRIAGE_REPO_URL</span>: <span class="yaml-string">"https://packages.example.com"</span>
+  <span class="yaml-key">PACKAGE_NAME</span>: <span class="yaml-string">"my-awesome-package"</span>
+
+<span class="yaml-comment"># Установка Criage в шаблоне before_script</span>
+<span class="yaml-key">.install_criage</span>: <span class="yaml-key">&install_criage</span>
+  <span class="yaml-key">before_script</span>:
+    - <span class="yaml-string">apt-get update && apt-get install -y wget</span>
+    - <span class="yaml-string">wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64</span>
+    - <span class="yaml-string">chmod +x criage && mv criage /usr/local/bin/</span>
+
+<span class="yaml-key">build_package</span>:
+  <span class="yaml-key">stage</span>: <span class="yaml-string">build</span>
+  <span class="yaml-key">image</span>: <span class="yaml-string">golang:1.21</span>
+  <span class="yaml-key"><<</span>: <span class="yaml-string">*install_criage</span>
+  <span class="yaml-key">script</span>:
+    - <span class="yaml-string">go build -o $PACKAGE_NAME .</span>
+    - <span class="yaml-string">mkdir -p package/bin</span>
+    - <span class="yaml-string">cp $PACKAGE_NAME package/bin/</span>
+    - <span class="yaml-string">cp README.md package/</span>
+  <span class="yaml-key">artifacts</span>:
+    <span class="yaml-key">paths</span>:
+      - <span class="yaml-string">package/</span>
+
+<span class="yaml-key">create_package</span>:
+  <span class="yaml-key">stage</span>: <span class="yaml-string">package</span>
+  <span class="yaml-key">image</span>: <span class="yaml-string">golang:1.21</span>
+  <span class="yaml-key"><<</span>: <span class="yaml-string">*install_criage</span>
+  <span class="yaml-key">dependencies</span>:
+    - <span class="yaml-string">build_package</span>
+  <span class="yaml-key">script</span>:
+    - <span class="yaml-string">cd package</span>
+    - <span class="yaml-string">criage init --name $PACKAGE_NAME --version $CI_COMMIT_TAG</span>
+    - <span class="yaml-string">criage build</span>
+  <span class="yaml-key">artifacts</span>:
+    <span class="yaml-key">paths</span>:
+      - <span class="yaml-string">package/*.criage</span>
+  <span class="yaml-key">only</span>:
+    - <span class="yaml-string">tags</span>
+
+<span class="yaml-key">publish_package</span>:
+  <span class="yaml-key">stage</span>: <span class="yaml-string">publish</span>
+  <span class="yaml-key">image</span>: <span class="yaml-string">golang:1.21</span>
+  <span class="yaml-key"><<</span>: <span class="yaml-string">*install_criage</span>
+  <span class="yaml-key">dependencies</span>:
+    - <span class="yaml-string">create_package</span>
+  <span class="yaml-key">script</span>:
+    - <span class="yaml-string">criage repo add main $CRIAGE_REPO_URL</span>
+    - <span class="yaml-string">criage publish package/*.criage --token $CRIAGE_UPLOAD_TOKEN</span>
+  <span class="yaml-key">only</span>:
+    - <span class="yaml-string">tags</span>
+  <span class="yaml-key">when</span>: <span class="yaml-string">manual</span></pre>
+                    </div>
+
+                    <h3>Мультиплатформенная сборка</h3>
+                    <p>Сборка пакетов для нескольких архитектур:</p>
+
+                    <div class="file-header">.gitlab-ci.yml</div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre><span class="yaml-key">build_linux_amd64</span>:
+  <span class="yaml-key">stage</span>: <span class="yaml-string">build</span>
+  <span class="yaml-key">image</span>: <span class="yaml-string">golang:1.21</span>
+  <span class="yaml-key"><<</span>: <span class="yaml-string">*install_criage</span>
+  <span class="yaml-key">variables</span>:
+    <span class="yaml-key">GOOS</span>: <span class="yaml-string">linux</span>
+    <span class="yaml-key">GOARCH</span>: <span class="yaml-string">amd64</span>
+  <span class="yaml-key">script</span>:
+    - <span class="yaml-string">go build -o ${PACKAGE_NAME}-${GOOS}-${GOARCH} .</span>
+    - <span class="yaml-string">mkdir -p packages/${GOOS}-${GOARCH}/bin</span>
+    - <span class="yaml-string">cp ${PACKAGE_NAME}-${GOOS}-${GOARCH} packages/${GOOS}-${GOARCH}/bin/${PACKAGE_NAME}</span>
+    - <span class="yaml-string">cd packages/${GOOS}-${GOARCH}</span>
+    - <span class="yaml-string">criage init --name $PACKAGE_NAME --version $CI_COMMIT_TAG --arch ${GOARCH}</span>
+    - <span class="yaml-string">criage build</span>
+  <span class="yaml-key">artifacts</span>:
+    <span class="yaml-key">paths</span>:
+      - <span class="yaml-string">packages/${GOOS}-${GOARCH}/*.criage</span>
+
+<span class="yaml-key">build_linux_arm64</span>:
+  <span class="yaml-key">extends</span>: <span class="yaml-string">build_linux_amd64</span>
+  <span class="yaml-key">variables</span>:
+    <span class="yaml-key">GOOS</span>: <span class="yaml-string">linux</span>
+    <span class="yaml-key">GOARCH</span>: <span class="yaml-string">arm64</span></pre>
+                    </div>
+
+                    <div class="tip">
+                        <strong>Совет профессионала:</strong> Используйте секретные переменные GitLab для безопасного хранения вашего <code class="inline-code">CRIAGE_UPLOAD_TOKEN</code>. Перейдите в Настройки проекта > CI/CD > Переменные.
+                    </div>
+                </section>
+
+                <section id="jenkins">
+                    <h2>Jenkins</h2>
+                    <p>Примеры интеграции Jenkins с использованием декларативных и скриптовых конвейеров.</p>
+
+                    <h3>Декларативный конвейер</h3>
+                    <p>Современный конвейер Jenkins с использованием декларативного синтаксиса:</p>
+
+                    <div class="file-header">Jenkinsfile</div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>pipeline {
+    agent {
+        docker {
+            image 'golang:1.21'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+
+    environment {
+        CRIAGE_REPO_URL = 'https://packages.example.com'
+        CRIAGE_UPLOAD_TOKEN = credentials('criage-upload-token')
+        PACKAGE_NAME = 'my-package'
+    }
+
+    stages {
+        stage('Настройка Criage') {
+            steps {
+                sh '''
+                    apt-get update && apt-get install -y wget
+                    wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64
+                    chmod +x criage && mv criage /usr/local/bin/
+                    criage --version
+                '''
+            }
+        }
+
+        stage('Установка зависимостей') {
+            steps {
+                sh '''
+                    criage repo add main $CRIAGE_REPO_URL
+                    criage install --from-config
+                '''
+            }
+        }
+
+        stage('Сборка') {
+            steps {
+                sh '''
+                    go build -o $PACKAGE_NAME .
+                    mkdir -p package/bin
+                    cp $PACKAGE_NAME package/bin/
+                    cp README.md package/
+                '''
+            }
+        }
+
+        stage('Тестирование') {
+            steps {
+                sh 'go test ./...'
+            }
+        }
+
+        stage('Создание пакета') {
+            when {
+                buildingTag()
+            }
+            steps {
+                sh '''
+                    cd package
+                    criage init --name $PACKAGE_NAME --version $TAG_NAME
+                    criage build
+                '''
+                archiveArtifacts artifacts: 'package/*.criage', fingerprint: true
+            }
+        }
+
+        stage('Публикация') {
+            when {
+                allOf {
+                    buildingTag()
+                    branch 'main'
+                }
+            }
+            steps {
+                input message: 'Опубликовать пакет в репозиторий?', ok: 'Опубликовать'
+                sh '''
+                    criage publish package/*.criage --token $CRIAGE_UPLOAD_TOKEN
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo 'Конвейер выполнен успешно!'
+        }
+        failure {
+            echo 'Конвейер завершился с ошибкой!'
+        }
+    }
+}</pre>
+                    </div>
+
+                    <h3>Скриптовый конвейер</h3>
+                    <p>Традиционный скриптовый конвейер Jenkins:</p>
+
+                    <div class="file-header">Jenkinsfile</div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>node {
+    def packageName = 'my-package'
+    def criageRepoUrl = 'https://packages.example.com'
+    
+    stage('Получение кода') {
+        checkout scm
+    }
+    
+    stage('Настройка') {
+        sh '''
+            apt-get update && apt-get install -y wget
+            wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64
+            chmod +x criage && mv criage /usr/local/bin/
+        '''
+    }
+    
+    stage('Зависимости') {
+        sh """
+            criage repo add main ${criageRepoUrl}
+            criage install --from-config
+        """
+    }
+    
+    stage('Сборка') {
+        sh """
+            go build -o ${packageName} .
+            mkdir -p package/bin
+            cp ${packageName} package/bin/
+        """
+    }
+    
+    stage('Тестирование') {
+        sh 'go test ./...'
+    }
+    
+    if (env.TAG_NAME) {
+        stage('Создание пакета') {
+            sh """
+                cd package
+                criage init --name ${packageName} --version ${env.TAG_NAME}
+                criage build
+            """
+            archiveArtifacts artifacts: 'package/*.criage'
+        }
+        
+        stage('Публикация') {
+            input message: 'Опубликовать в репозиторий?'
+            withCredentials([string(credentialsId: 'criage-upload-token', variable: 'TOKEN')]) {
+                sh '''
+                    criage publish package/*.criage --token $TOKEN
+                '''
+            }
+        }
+    }
+}</pre>
+                    </div>
+
+                    <h3>Конфигурация задания Freestyle</h3>
+                    <p>Для команд, предпочитающих GUI конфигурацию, вот shell скрипт для задания freestyle:</p>
+
+                    <div class="use-case">
+                        <h4>🔧 Скрипт сборки Freestyle задания</h4>
+                        <div class="code-block">
+                            <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                            <pre>#!/bin/bash
+set -e
+
+# Конфигурация
+CRIAGE_REPO_URL="https://packages.example.com"
+PACKAGE_NAME="my-package"
+
+# Установка Criage
+if ! command -v criage &> /dev/null; then
+    echo "Установка Criage..."
+    wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64
+    chmod +x criage
+    sudo mv criage /usr/local/bin/
+fi
+
+# Настройка репозитория
+criage repo add main $CRIAGE_REPO_URL
+
+# Установка зависимостей
+if [ -f "criage.yaml" ]; then
+    echo "Установка зависимостей..."
+    criage install --from-config
+fi
+
+# Сборка проекта
+echo "Сборка проекта..."
+go build -o $PACKAGE_NAME .
+
+# Запуск тестов
+echo "Запуск тестов..."
+go test ./...
+
+# Создание пакета если существует тег
+if [ ! -z "$GIT_TAG_NAME" ]; then
+    echo "Создание пакета..."
+    mkdir -p package/bin
+    cp $PACKAGE_NAME package/bin/
+    cp README.md package/
+    
+    cd package
+    criage init --name $PACKAGE_NAME --version $GIT_TAG_NAME
+    criage build
+    
+    # Публикация если доступен токен загрузки
+    if [ ! -z "$CRIAGE_UPLOAD_TOKEN" ]; then
+        echo "Публикация пакета..."
+        criage publish *.criage --token $CRIAGE_UPLOAD_TOKEN
+    fi
+fi
+
+echo "Сборка завершена успешно!"</pre>
+                        </div>
+                    </div>
+
+                    <div class="warning">
+                        <strong>Замечание по безопасности:</strong> Всегда храните чувствительные токены, такие как <code class="inline-code">CRIAGE_UPLOAD_TOKEN</code>, как учётные данные Jenkins, а не как обычный текст в скриптах.
+                    </div>
+                </section>
+
+                <section id="github-actions">
+                    <h2>GitHub Actions</h2>
+                    <p>Рабочие процессы GitHub Actions для интеграции Criage.</p>
+
+                    <h3>Базовый рабочий процесс</h3>
+                    <p>Простой рабочий процесс для сборки и тестирования с Criage:</p>
+
+                    <div class="file-header">.github/workflows/ci.yml</div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CRIAGE_REPO_URL: https://packages.example.com
+  PACKAGE_NAME: my-package
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Настройка Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Установка Criage
+      run: |
+        wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64
+        chmod +x criage
+        sudo mv criage /usr/local/bin/
+    
+    - name: Настройка репозитория Criage
+      run: |
+        criage repo add main ${{ env.CRIAGE_REPO_URL }}
+    
+    - name: Установка зависимостей
+      run: |
+        criage install --from-config
+    
+    - name: Сборка
+      run: |
+        go build -o ${{ env.PACKAGE_NAME }} .
+    
+    - name: Тестирование
+      run: |
+        go test ./...
+    
+    - name: Загрузка артефакта сборки
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.PACKAGE_NAME }}
+        path: ${{ env.PACKAGE_NAME }}</pre>
+                    </div>
+
+                    <h3>Рабочий процесс релиза</h3>
+                    <p>Автоматизированная публикация пакетов при релизах по тегам:</p>
+
+                    <div class="file-header">.github/workflows/release.yml</div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CRIAGE_REPO_URL: https://packages.example.com
+  PACKAGE_NAME: my-package
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Настройка Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Установка Criage
+      run: |
+        wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64
+        chmod +x criage
+        sudo mv criage /usr/local/bin/
+    
+    - name: Получение версии
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Сборка
+      run: |
+        go build -o ${{ env.PACKAGE_NAME }} .
+    
+    - name: Тестирование
+      run: |
+        go test ./...
+    
+    - name: Создание пакета
+      run: |
+        mkdir -p package/bin
+        cp ${{ env.PACKAGE_NAME }} package/bin/
+        cp README.md LICENSE package/
+        cd package
+        criage init --name ${{ env.PACKAGE_NAME }} --version ${{ steps.version.outputs.VERSION }}
+        criage build
+    
+    - name: Публикация пакета
+      env:
+        CRIAGE_UPLOAD_TOKEN: ${{ secrets.CRIAGE_UPLOAD_TOKEN }}
+      run: |
+        criage repo add main ${{ env.CRIAGE_REPO_URL }}
+        criage publish package/*.criage --token $CRIAGE_UPLOAD_TOKEN
+    
+    - name: Загрузка пакета в релиз
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: package/${{ env.PACKAGE_NAME }}-${{ steps.version.outputs.VERSION }}.criage
+        asset_name: ${{ env.PACKAGE_NAME }}-${{ steps.version.outputs.VERSION }}.criage
+        asset_content_type: application/octet-stream</pre>
+                    </div>
+
+                    <h3>Матричная сборка</h3>
+                    <p>Сборка пакетов для нескольких платформ:</p>
+
+                    <div class="file-header">.github/workflows/multi-platform.yml</div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>name: Multi-Platform Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Настройка Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Установка Criage
+      run: |
+        wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64
+        chmod +x criage
+        sudo mv criage /usr/local/bin/
+    
+    - name: Сборка
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        BINARY_NAME=my-package
+        if [ "$GOOS" = "windows" ]; then
+          BINARY_NAME="${BINARY_NAME}.exe"
+        fi
+        
+        go build -o $BINARY_NAME .
+        
+        mkdir -p package/bin
+        cp $BINARY_NAME package/bin/
+        cp README.md package/
+        
+        cd package
+        criage init --name my-package --version $VERSION --os $GOOS --arch $GOARCH
+        criage build
+    
+    - name: Загрузка артефакта пакета
+      uses: actions/upload-artifact@v3
+      with:
+        name: packages-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: package/*.criage</pre>
+                    </div>
+                </section>
+
+                <section id="best-practices">
+                    <h2>Лучшие практики</h2>
+
+                    <h3>Безопасность</h3>
+                    <ul>
+                        <li><strong>Управление токенами:</strong> Всегда храните токены загрузки как секреты/учётные данные</li>
+                        <li><strong>Сетевая безопасность:</strong> Используйте HTTPS для URL репозиториев</li>
+                        <li><strong>Контроль доступа:</strong> Ограничьте доступ CI/CD runner'ов к серверам репозиториев</li>
+                        <li><strong>Подпись артефактов:</strong> Рассмотрите подпись пакетов для проверки целостности</li>
+                    </ul>
+
+                    <h3>Производительность</h3>
+                    <ul>
+                        <li><strong>Кэширование:</strong> Кэшируйте бинарный файл Criage и установленные пакеты между сборками</li>
+                        <li><strong>Параллельные сборки:</strong> Используйте матричные сборки для мультиплатформенных пакетов</li>
+                        <li><strong>Оптимизация зависимостей:</strong> Закрепляйте конкретные версии пакетов в продакшене</li>
+                        <li><strong>Этапы сборки:</strong> Отделяйте установку зависимостей от сборки</li>
+                    </ul>
+
+                    <h3>Надёжность</h3>
+                    <ul>
+                        <li><strong>Обработка ошибок:</strong> Всегда используйте <code class="inline-code">set -e</code> в shell скриптах</li>
+                        <li><strong>Логика повтора:</strong> Реализуйте повтор для сетевых операций</li>
+                        <li><strong>Проверки работоспособности:</strong> Проверяйте подключение к репозиторию перед операциями</li>
+                        <li><strong>Стратегии отката:</strong> Имейте резервные источники репозиториев</li>
+                    </ul>
+
+                    <div class="tip">
+                        <strong>Совет:</strong> Используйте шаблоны конвейеров или общие библиотеки для поддержания согласованности между проектами.
+                    </div>
+                </section>
+
+                <section id="use-cases">
+                    <h2>Сценарии использования</h2>
+
+                    <div class="use-case">
+                        <h4>🚀 Развёртывание микросервисов</h4>
+                        <p>Упаковка микросервисов с их зависимостями и развёртывание в различных средах:</p>
+                        <ul>
+                            <li>Сборка сервиса со всеми зависимостями</li>
+                            <li>Создание Criage пакета с конфигурацией</li>
+                            <li>Развёртывание в staging/production через пакетный менеджер</li>
+                            <li>Контроль версий и поддержка отката</li>
+                        </ul>
+                    </div>
+
+                    <div class="use-case">
+                        <h4>📚 Публикация библиотек</h4>
+                        <p>Автоматизация упаковки и распространения библиотек:</p>
+                        <ul>
+                            <li>Запуск тестов и проверок качества</li>
+                            <li>Генерация документации</li>
+                            <li>Упаковка библиотеки с метаданными</li>
+                            <li>Публикация во внутренние/публичные репозитории</li>
+                        </ul>
+                    </div>
+
+                    <div class="use-case">
+                        <h4>🔧 Распространение инструментов</h4>
+                        <p>Упаковка и распространение инструментов разработки:</p>
+                        <ul>
+                            <li>Сборка CLI инструментов для нескольких платформ</li>
+                            <li>Упаковка с документацией и примерами</li>
+                            <li>Автоматические обновления через пакетный менеджер</li>
+                            <li>Управление версиями и проверка совместимости</li>
+                        </ul>
+                    </div>
+
+                    <div class="use-case">
+                        <h4>🏗️ Инфраструктура как код</h4>
+                        <p>Упаковка конфигураций инфраструктуры:</p>
+                        <ul>
+                            <li>Terraform модули и конфигурации</li>
+                            <li>Ansible playbook'и и роли</li>
+                            <li>Kubernetes манифесты и Helm чарты</li>
+                            <li>Конфигурации для конкретных сред</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section id="troubleshooting">
+                    <h2>Решение проблем</h2>
+
+                    <h3>Распространённые проблемы</h3>
+
+                    <h4>Бинарный файл Criage не найден</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre># Проверка установки
+which criage
+criage --version
+
+# Переустановка при необходимости
+wget -O criage https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64
+chmod +x criage
+sudo mv criage /usr/local/bin/</pre>
+                    </div>
+
+                    <h4>Проблемы подключения к репозиторию</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre># Тест подключения к репозиторию
+curl -I https://packages.example.com/api/v1/
+
+# Отладка конфигурации Criage
+criage repo list
+criage config show
+
+# Сброс конфигурации репозитория
+criage repo remove main
+criage repo add main https://packages.example.com</pre>
+                    </div>
+
+                    <h4>Проблемы с токеном загрузки</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre># Тест валидности токена
+curl -H "Authorization: Bearer $TOKEN" \
+     https://packages.example.com/api/v1/stats
+
+# Проверка формата токена (должен быть буквенно-цифровым)
+echo $TOKEN | wc -c  # Должно быть 32+ символов</pre>
+                    </div>
+
+                    <h3>Режим отладки</h3>
+                    <p>Включение подробного логирования для диагностики:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre># Включение режима отладки
+export CRIAGE_DEBUG=true
+criage install --verbose
+
+# Проверка логов
+criage logs --last 50</pre>
+                    </div>
+
+                    <div class="note">
+                        <strong>Получение помощи:</strong> Если вы столкнулись с проблемами, не освещёнными здесь, проверьте <a href="https://github.com/criage-oss/criage-client/issues" target="_blank">GitHub Issues</a> или создайте новую проблему с деталями вашей CI/CD платформы и логами ошибок.
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(button) {
+            const code = button.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Скопировано!';
+                button.style.background = '#4caf50';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#444';
+                }, 2000);
+            });
+        }
+
+        // Sidebar navigation
+        document.addEventListener('DOMContentLoaded', function () {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+
+            function updateActiveLink() {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= sectionTop - 200) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateActiveLink);
+        });
+    </script>
+</body>
+
+</html>
