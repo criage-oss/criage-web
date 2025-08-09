@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервер репозитория - Criage</title>
+    <meta name="description" content="Сервер репозитория Criage - установка, настройка и документация API для управления репозиториями пакетов">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="keywords" content="criage, сервер репозитория, управление пакетами, REST API, Go, хранение пакетов">
+    <meta name="author" content="Criage Team">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Сервер репозитория - Criage">
+    <meta property="og:description" content="Установка и управление репозиториями пакетов Criage с REST API">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://criage.ru/docs/repository-server_ru.html">
+    <meta property="og:image" content="https://criage.ru/docs/logo.png">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Сервер репозитория - Criage">
+    <meta name="twitter:description" content="Установка и управление репозиториями пакетов Criage с REST API">
+    <meta name="twitter:image" content="https://criage.ru/docs/logo.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #0066cc;
+        }
+
+        .language-switcher {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            padding: 0.25rem 0.5rem;
+            text-decoration: none;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        /* Main Layout */
+        .docs-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-nav a {
+            text-decoration: none;
+            color: #666;
+            padding: 0.5rem 0;
+            display: block;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            color: #0066cc;
+            font-weight: 500;
+        }
+
+        /* Content */
+        .docs-content {
+            max-width: none;
+        }
+
+        .docs-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .docs-content h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+            color: #333;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+
+        .docs-content h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 0.75rem 0;
+            color: #444;
+        }
+
+        .docs-content h4 {
+            font-size: 1.2rem;
+            margin: 1rem 0 0.5rem 0;
+            color: #555;
+        }
+
+        .docs-content p {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+
+        .docs-content ul, .docs-content ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .docs-content li {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            position: relative;
+            margin: 1.5rem 0;
+        }
+
+        .code-block pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #555;
+        }
+
+        .inline-code {
+            background: #f1f3f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            color: #e91e63;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Notes and Alerts */
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .feature-card h4 {
+            color: #0066cc;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .docs-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                order: 2;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+        }
+
+        /* Syntax highlighting for JSON */
+        .json-key { color: #0451a5; }
+        .json-string { color: #0a6b29; }
+        .json-number { color: #0f6b3d; }
+        .json-boolean { color: #0f6b3d; }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <a href="index_ru.html" class="logo">
+                <img src="logo.png" alt="Criage Logo">
+                Criage
+            </a>
+            <div class="nav-content">
+                <ul class="nav-links">
+                    <li><a href="index_ru.html">Главная</a></li>
+                    <li><a href="docs_ru.html">Документация клиента</a></li>
+                    <li><a href="repository-server_ru.html">Сервер репозитория</a></li>
+                    <li><a href="mcp-server_ru.html">MCP Server</a></li>
+                    <li><a href="https://github.com/criage-oss/criage-server" target="_blank">GitHub</a></li>
+                </ul>
+                <div class="language-switcher">
+                    <a href="repository-server.html" class="lang-btn">EN</a>
+                    <a href="repository-server_ru.html" class="lang-btn active">RU</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="docs-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h3>Содержание</h3>
+                <ul class="sidebar-nav">
+                    <li><a href="#overview" class="active">Обзор</a></li>
+                    <li><a href="#features">Возможности</a></li>
+                    <li><a href="#installation">Установка</a></li>
+                    <li><a href="#configuration">Конфигурация</a></li>
+                    <li><a href="#api-endpoints">API точки доступа</a></li>
+                    <li><a href="#authentication">Аутентификация</a></li>
+                    <li><a href="#web-interface">Веб-интерфейс</a></li>
+                    <li><a href="#deployment">Развертывание</a></li>
+                    <li><a href="#monitoring">Мониторинг</a></li>
+                    <li><a href="#troubleshooting">Решение проблем</a></li>
+                </ul>
+            </aside>
+
+            <!-- Content -->
+            <main class="docs-content">
+                <h1>Сервер репозитория Criage</h1>
+                <p>Полное руководство по установке и управлению серверами репозиториев пакетов Criage.</p>
+
+                <section id="overview">
+                    <h2>Обзор</h2>
+                    <p>Сервер репозитория Criage - это легковесный, высокопроизводительный HTTP-сервер, предназначенный для хранения и управления репозиториями пакетов. Он предоставляет REST API для операций с пакетами и простой веб-интерфейс для просмотра пакетов.</p>
+                    
+                    <div class="note">
+                        <strong>Ключевые преимущества:</strong> Самостоятельное управление пакетами, полный контроль над вашими пакетами, легкая интеграция с CI/CD конвейерами и поддержка нескольких форматов архивов.
+                    </div>
+                </section>
+
+                <section id="features">
+                    <h2>Возможности</h2>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>📦 Хранение пакетов</h4>
+                            <p>Автоматическая индексация и организация загруженных пакетов</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔍 Поиск пакетов</h4>
+                            <p>Быстрый поиск по имени, описанию, автору и тегам</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📊 Статистика</h4>
+                            <p>Отслеживание загрузок и метрики популярности пакетов</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🌐 REST API</h4>
+                            <p>Полнофункциональный API для всех операций с пакетами</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🚀 Веб-интерфейс</h4>
+                            <p>Простой веб-интерфейс для просмотра и управления пакетами</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔒 Безопасность</h4>
+                            <p>Токен-основанная аутентификация для загрузок</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="installation">
+                    <h2>Установка</h2>
+
+                    <h3>Требования</h3>
+                    <ul>
+                        <li>Go 1.24.4 или выше</li>
+                        <li>Git</li>
+                        <li>Минимум 512MB RAM</li>
+                        <li>Дисковое пространство для пакетов</li>
+                    </ul>
+
+                    <h3>Сборка из исходного кода</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre># Клонировать репозиторий
+git clone https://github.com/criage-oss/criage-server.git
+cd criage-server
+
+# Установить зависимости
+go mod tidy
+
+# Собрать сервер
+go build -o criage-repository
+
+# Запустить с конфигурацией по умолчанию
+./criage-repository
+
+# Или указать файл конфигурации
+./criage-repository -config /path/to/config.json</pre>
+                    </div>
+
+                    <div class="success">
+                        <strong>Сервер запущен:</strong> Ваш сервер репозитория будет доступен по адресу <code class="inline-code">http://localhost:8080</code>
+                    </div>
+                </section>
+
+                <section id="configuration">
+                    <h2>Конфигурация</h2>
+                    <p>При первом запуске автоматически создается файл конфигурации <code class="inline-code">config.json</code> с настройками по умолчанию:</p>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>{
+  <span class="json-key">"port"</span>: <span class="json-number">8080</span>,
+  <span class="json-key">"storage_path"</span>: <span class="json-string">"./packages"</span>,
+  <span class="json-key">"index_path"</span>: <span class="json-string">"./index.json"</span>,
+  <span class="json-key">"upload_token"</span>: <span class="json-string">"your-secret-token"</span>,
+  <span class="json-key">"max_file_size"</span>: <span class="json-number">104857600</span>,
+  <span class="json-key">"allowed_formats"</span>: [
+    <span class="json-string">"criage"</span>,
+    <span class="json-string">"tar.zst"</span>,
+    <span class="json-string">"tar.lz4"</span>,
+    <span class="json-string">"tar.xz"</span>,
+    <span class="json-string">"tar.gz"</span>,
+    <span class="json-string">"zip"</span>
+  ],
+  <span class="json-key">"enable_cors"</span>: <span class="json-boolean">true</span>,
+  <span class="json-key">"log_level"</span>: <span class="json-string">"info"</span>
+}</pre>
+                    </div>
+
+                    <h3>Параметры конфигурации</h3>
+                    <table>
+                        <tr>
+                            <th>Параметр</th>
+                            <th>Тип</th>
+                            <th>По умолчанию</th>
+                            <th>Описание</th>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">port</code></td>
+                            <td>integer</td>
+                            <td>8080</td>
+                            <td>Порт HTTP сервера</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">storage_path</code></td>
+                            <td>string</td>
+                            <td>./packages</td>
+                            <td>Директория для хранения пакетов</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">index_path</code></td>
+                            <td>string</td>
+                            <td>./index.json</td>
+                            <td>Расположение файла индекса пакетов</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">upload_token</code></td>
+                            <td>string</td>
+                            <td>-</td>
+                            <td>Токен аутентификации для загрузок</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">max_file_size</code></td>
+                            <td>integer</td>
+                            <td>104857600</td>
+                            <td>Максимальный размер загрузки (байты)</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">allowed_formats</code></td>
+                            <td>array</td>
+                            <td>См. выше</td>
+                            <td>Поддерживаемые форматы архивов</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">enable_cors</code></td>
+                            <td>boolean</td>
+                            <td>true</td>
+                            <td>Включить CORS заголовки</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">log_level</code></td>
+                            <td>string</td>
+                            <td>info</td>
+                            <td>Уровень логирования (debug, info, warn, error)</td>
+                        </tr>
+                    </table>
+
+                    <div class="warning">
+                        <strong>Безопасность:</strong> Обязательно измените стандартный <code class="inline-code">upload_token</code> на безопасное случайное значение в производственной среде.
+                    </div>
+                </section>
+
+                <section id="api-endpoints">
+                    <h2>API точки доступа</h2>
+
+                    <h3>Информация о репозитории</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>GET /api/v1/</pre>
+                    </div>
+                    <p>Возвращает информацию о репозитории, количество пакетов и поддерживаемые форматы.</p>
+
+                    <h3>Управление пакетами</h3>
+                    
+                    <h4>Список пакетов</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>GET /api/v1/packages?page=1&limit=20</pre>
+                    </div>
+                    <p>Возвращает список всех пакетов с пагинацией.</p>
+
+                    <h4>Информация о пакете</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>GET /api/v1/packages/{name}</pre>
+                    </div>
+                    <p>Возвращает подробную информацию о конкретном пакете.</p>
+
+                    <h4>Информация о версии</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>GET /api/v1/packages/{name}/{version}</pre>
+                    </div>
+                    <p>Возвращает информацию о конкретной версии пакета.</p>
+
+                    <h4>Поиск пакетов</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>GET /api/v1/search?q=query&page=1&limit=20</pre>
+                    </div>
+                    <p>Поиск пакетов по имени, описанию, автору или тегам.</p>
+
+                    <h4>Загрузка пакета</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>GET /api/v1/download/{name}/{version}/{file}</pre>
+                    </div>
+                    <p>Загрузить конкретный файл пакета.</p>
+
+                    <h4>Выгрузка пакета</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>POST /api/v1/upload
+Authorization: Bearer {token}
+Content-Type: multipart/form-data</pre>
+                    </div>
+                    <p>Загрузить новый пакет (требует аутентификации).</p>
+
+                    <h4>Статистика репозитория</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>GET /api/v1/stats</pre>
+                    </div>
+                    <p>Возвращает статистику и метрики репозитория.</p>
+
+                    <h4>Обновление индекса</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>POST /api/v1/refresh
+Authorization: Bearer {token}</pre>
+                    </div>
+                    <p>Вручную обновить индекс пакетов (требует аутентификации).</p>
+                </section>
+
+                <section id="authentication">
+                    <h2>Аутентификация</h2>
+                    <p>Сервер репозитория использует токен-основанную аутентификацию для операций, которые изменяют репозиторий:</p>
+
+                    <ul>
+                        <li>Загрузка пакетов</li>
+                        <li>Обновление индекса</li>
+                        <li>Административные операции</li>
+                    </ul>
+
+                    <h3>Настройка аутентификации</h3>
+                    <ol>
+                        <li>Сгенерируйте безопасный токен (рекомендуется: 32+ символа)</li>
+                        <li>Установите токен в вашем <code class="inline-code">config.json</code></li>
+                        <li>Включите токен в API запросы, используя заголовок Authorization</li>
+                    </ol>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre># Пример API запроса с аутентификацией
+curl -H "Authorization: Bearer your-secret-token" \
+     -F "file=@package.criage" \
+     http://localhost:8080/api/v1/upload</pre>
+                    </div>
+                </section>
+
+                <section id="web-interface">
+                    <h2>Веб-интерфейс</h2>
+                    <p>Сервер репозитория включает простой веб-интерфейс для просмотра пакетов:</p>
+
+                    <ul>
+                        <li><strong>Главная страница:</strong> <code class="inline-code">http://localhost:8080/</code> - обзор репозитория</li>
+                        <li><strong>Список пакетов:</strong> просмотр всех доступных пакетов</li>
+                        <li><strong>Поиск:</strong> поиск пакетов по имени или описанию</li>
+                        <li><strong>Подробности пакета:</strong> просмотр информации о пакете и ссылки для загрузки</li>
+                    </ul>
+
+                    <div class="note">
+                        <strong>Пользовательские темы:</strong> Веб-интерфейс можно настроить, изменив встроенные HTML шаблоны в исходном коде сервера.
+                    </div>
+                </section>
+
+                <section id="deployment">
+                    <h2>Развертывание</h2>
+
+                    <h3>Развертывание Docker</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre># Собрать Docker образ
+docker build -t criage-repository .
+
+# Запустить контейнер
+docker run -d \
+  --name criage-repo \
+  -p 8080:8080 \
+  -v /host/packages:/app/packages \
+  -v /host/config.json:/app/config.json \
+  criage-repository</pre>
+                    </div>
+
+                    <h3>Systemd сервис</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>[Unit]
+Description=Criage Repository Server
+After=network.target
+
+[Service]
+Type=simple
+User=criage
+WorkingDirectory=/opt/criage-repository
+ExecStart=/opt/criage-repository/criage-repository
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</pre>
+                    </div>
+
+                    <h3>Обратный прокси (Nginx)</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>server {
+    listen 80;
+    server_name packages.example.com;
+    
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</pre>
+                    </div>
+                </section>
+
+                <section id="monitoring">
+                    <h2>Мониторинг</h2>
+                    <p>Мониторинг здоровья и производительности вашего сервера репозитория:</p>
+
+                    <h3>Проверка работоспособности</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>curl http://localhost:8080/api/v1/</pre>
+                    </div>
+
+                    <h3>Файлы логов</h3>
+                    <p>Логи сервера включают информацию о:</p>
+                    <ul>
+                        <li>HTTP запросах и ответах</li>
+                        <li>Загрузках и скачиваниях пакетов</li>
+                        <li>Попытках аутентификации</li>
+                        <li>Ошибках и предупреждениях</li>
+                    </ul>
+
+                    <h3>Метрики</h3>
+                    <p>Точка доступа <code class="inline-code">/api/v1/stats</code> предоставляет:</p>
+                    <ul>
+                        <li>Общее количество пакетов</li>
+                        <li>Размер репозитория</li>
+                        <li>Статистику загрузок</li>
+                        <li>Статистику выгрузок</li>
+                    </ul>
+                </section>
+
+                <section id="troubleshooting">
+                    <h2>Решение проблем</h2>
+
+                    <h3>Распространенные проблемы</h3>
+
+                    <h4>Сервер не запускается</h4>
+                    <ul>
+                        <li>Проверьте, свободен ли порт 8080</li>
+                        <li>Проверьте синтаксис файла конфигурации</li>
+                        <li>Убедитесь, что директория хранения существует и доступна для записи</li>
+                    </ul>
+
+                    <h4>Загрузка не работает</h4>
+                    <ul>
+                        <li>Проверьте токен аутентификации</li>
+                        <li>Проверьте размер файла против <code class="inline-code">max_file_size</code></li>
+                        <li>Убедитесь, что формат файла в списке <code class="inline-code">allowed_formats</code></li>
+                    </ul>
+
+                    <h4>Проблемы с производительностью</h4>
+                    <ul>
+                        <li>Следите за дисковым пространством и I/O</li>
+                        <li>Проверьте использование памяти</li>
+                        <li>Рассмотрите увеличение <code class="inline-code">max_file_size</code> для больших пакетов</li>
+                    </ul>
+
+                    <h3>Режим отладки</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre># Запуск с отладочным логированием
+./criage-repository -config config.json -debug</pre>
+                    </div>
+
+                    <div class="note">
+                        <strong>Получение помощи:</strong> Если у вас возникают постоянные проблемы, создайте issue в <a
+                            href="https://github.com/criage-oss/criage-server/issues" target="_blank">GitHub репозитории</a> с
+                        подробным описанием проблемы и логами отладки.
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(button) {
+            const code = button.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Скопировано!';
+                button.style.background = '#4caf50';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#444';
+                }, 2000);
+            });
+        }
+
+        // Sidebar navigation
+        document.addEventListener('DOMContentLoaded', function () {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+
+            function updateActiveLink() {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= sectionTop - 200) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateActiveLink);
+        });
+    </script>
+</body>
+
+</html>

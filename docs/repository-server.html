@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repository Server - Criage</title>
+    <meta name="description" content="Criage Repository Server - setup, configuration, and API documentation for managing package repositories">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="keywords" content="criage, repository server, package management, REST API, Go, package storage">
+    <meta name="author" content="Criage Team">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Repository Server - Criage">
+    <meta property="og:description" content="Setup and manage Criage package repositories with REST API">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://criage.ru/docs/repository-server.html">
+    <meta property="og:image" content="https://criage.ru/docs/logo.png">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Repository Server - Criage">
+    <meta name="twitter:description" content="Setup and manage Criage package repositories with REST API">
+    <meta name="twitter:image" content="https://criage.ru/docs/logo.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #0066cc;
+        }
+
+        .language-switcher {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .lang-btn {
+            padding: 0.25rem 0.5rem;
+            text-decoration: none;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .lang-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        /* Main Layout */
+        .docs-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-nav a {
+            text-decoration: none;
+            color: #666;
+            padding: 0.5rem 0;
+            display: block;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            color: #0066cc;
+            font-weight: 500;
+        }
+
+        /* Content */
+        .docs-content {
+            max-width: none;
+        }
+
+        .docs-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .docs-content h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+            color: #333;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+
+        .docs-content h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 0.75rem 0;
+            color: #444;
+        }
+
+        .docs-content h4 {
+            font-size: 1.2rem;
+            margin: 1rem 0 0.5rem 0;
+            color: #555;
+        }
+
+        .docs-content p {
+            margin-bottom: 1rem;
+            color: #666;
+        }
+
+        .docs-content ul, .docs-content ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .docs-content li {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        /* Code Blocks */
+        .code-block {
+            position: relative;
+            margin: 1.5rem 0;
+        }
+
+        .code-block pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #555;
+        }
+
+        .inline-code {
+            background: #f1f3f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            color: #e91e63;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Notes and Alerts */
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .feature-card h4 {
+            color: #0066cc;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .docs-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                order: 2;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+        }
+
+        /* Syntax highlighting for JSON */
+        .json-key { color: #0451a5; }
+        .json-string { color: #0a6b29; }
+        .json-number { color: #0f6b3d; }
+        .json-boolean { color: #0f6b3d; }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Criage Logo">
+                Criage
+            </a>
+            <div class="nav-content">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="docs.html">Client Docs</a></li>
+                    <li><a href="repository-server.html">Repository Server</a></li>
+                    <li><a href="mcp-server.html">MCP Server</a></li>
+                    <li><a href="https://github.com/criage-oss/criage-server" target="_blank">GitHub</a></li>
+                </ul>
+                <div class="language-switcher">
+                    <a href="repository-server.html" class="lang-btn active">EN</a>
+                    <a href="repository-server_ru.html" class="lang-btn">RU</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="docs-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h3>Table of Contents</h3>
+                <ul class="sidebar-nav">
+                    <li><a href="#overview" class="active">Overview</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#configuration">Configuration</a></li>
+                    <li><a href="#api-endpoints">API Endpoints</a></li>
+                    <li><a href="#authentication">Authentication</a></li>
+                    <li><a href="#web-interface">Web Interface</a></li>
+                    <li><a href="#deployment">Deployment</a></li>
+                    <li><a href="#monitoring">Monitoring</a></li>
+                    <li><a href="#troubleshooting">Troubleshooting</a></li>
+                </ul>
+            </aside>
+
+            <!-- Content -->
+            <main class="docs-content">
+                <h1>Criage Repository Server</h1>
+                <p>Complete guide for setting up and managing Criage package repository servers.</p>
+
+                <section id="overview">
+                    <h2>Overview</h2>
+                    <p>The Criage Repository Server is a lightweight, high-performance HTTP server designed to store and manage package repositories. It provides a REST API for package operations and a simple web interface for browsing packages.</p>
+                    
+                    <div class="note">
+                        <strong>Key Benefits:</strong> Self-hosted package management, full control over your packages, easy integration with CI/CD pipelines, and support for multiple archive formats.
+                    </div>
+                </section>
+
+                <section id="features">
+                    <h2>Features</h2>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>📦 Package Storage</h4>
+                            <p>Automatic indexing and organization of uploaded packages</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔍 Package Search</h4>
+                            <p>Fast search by name, description, author, and tags</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📊 Statistics</h4>
+                            <p>Download tracking and package popularity metrics</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🌐 REST API</h4>
+                            <p>Full-featured API for all package operations</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🚀 Web Interface</h4>
+                            <p>Simple web UI for browsing and managing packages</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔒 Security</h4>
+                            <p>Token-based authentication for uploads</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="installation">
+                    <h2>Installation</h2>
+
+                    <h3>Requirements</h3>
+                    <ul>
+                        <li>Go 1.24.4 or higher</li>
+                        <li>Git</li>
+                        <li>Minimum 512MB RAM</li>
+                        <li>Storage space for packages</li>
+                    </ul>
+
+                    <h3>Build from Source</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Clone repository
+git clone https://github.com/criage-oss/criage-server.git
+cd criage-server
+
+# Install dependencies
+go mod tidy
+
+# Build server
+go build -o criage-repository
+
+# Run with default configuration
+./criage-repository
+
+# Or specify configuration file
+./criage-repository -config /path/to/config.json</pre>
+                    </div>
+
+                    <div class="success">
+                        <strong>Server Started:</strong> Your repository server will be available at <code class="inline-code">http://localhost:8080</code>
+                    </div>
+                </section>
+
+                <section id="configuration">
+                    <h2>Configuration</h2>
+                    <p>On first run, a configuration file <code class="inline-code">config.json</code> is automatically created with default settings:</p>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>{
+  <span class="json-key">"port"</span>: <span class="json-number">8080</span>,
+  <span class="json-key">"storage_path"</span>: <span class="json-string">"./packages"</span>,
+  <span class="json-key">"index_path"</span>: <span class="json-string">"./index.json"</span>,
+  <span class="json-key">"upload_token"</span>: <span class="json-string">"your-secret-token"</span>,
+  <span class="json-key">"max_file_size"</span>: <span class="json-number">104857600</span>,
+  <span class="json-key">"allowed_formats"</span>: [
+    <span class="json-string">"criage"</span>,
+    <span class="json-string">"tar.zst"</span>,
+    <span class="json-string">"tar.lz4"</span>,
+    <span class="json-string">"tar.xz"</span>,
+    <span class="json-string">"tar.gz"</span>,
+    <span class="json-string">"zip"</span>
+  ],
+  <span class="json-key">"enable_cors"</span>: <span class="json-boolean">true</span>,
+  <span class="json-key">"log_level"</span>: <span class="json-string">"info"</span>
+}</pre>
+                    </div>
+
+                    <h3>Configuration Parameters</h3>
+                    <table>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">port</code></td>
+                            <td>integer</td>
+                            <td>8080</td>
+                            <td>HTTP server port</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">storage_path</code></td>
+                            <td>string</td>
+                            <td>./packages</td>
+                            <td>Directory for storing packages</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">index_path</code></td>
+                            <td>string</td>
+                            <td>./index.json</td>
+                            <td>Package index file location</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">upload_token</code></td>
+                            <td>string</td>
+                            <td>-</td>
+                            <td>Authentication token for uploads</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">max_file_size</code></td>
+                            <td>integer</td>
+                            <td>104857600</td>
+                            <td>Maximum upload size (bytes)</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">allowed_formats</code></td>
+                            <td>array</td>
+                            <td>See above</td>
+                            <td>Supported archive formats</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">enable_cors</code></td>
+                            <td>boolean</td>
+                            <td>true</td>
+                            <td>Enable CORS headers</td>
+                        </tr>
+                        <tr>
+                            <td><code class="inline-code">log_level</code></td>
+                            <td>string</td>
+                            <td>info</td>
+                            <td>Logging level (debug, info, warn, error)</td>
+                        </tr>
+                    </table>
+
+                    <div class="warning">
+                        <strong>Security Note:</strong> Make sure to change the default <code class="inline-code">upload_token</code> to a secure random value in production environments.
+                    </div>
+                </section>
+
+                <section id="api-endpoints">
+                    <h2>API Endpoints</h2>
+
+                    <h3>Repository Information</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>GET /api/v1/</pre>
+                    </div>
+                    <p>Returns repository information, package count, and supported formats.</p>
+
+                    <h3>Package Management</h3>
+                    
+                    <h4>List Packages</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>GET /api/v1/packages?page=1&limit=20</pre>
+                    </div>
+                    <p>Returns paginated list of all packages.</p>
+
+                    <h4>Package Information</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>GET /api/v1/packages/{name}</pre>
+                    </div>
+                    <p>Returns detailed information about a specific package.</p>
+
+                    <h4>Version Information</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>GET /api/v1/packages/{name}/{version}</pre>
+                    </div>
+                    <p>Returns information about a specific package version.</p>
+
+                    <h4>Search Packages</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>GET /api/v1/search?q=query&page=1&limit=20</pre>
+                    </div>
+                    <p>Search packages by name, description, author, or tags.</p>
+
+                    <h4>Download Package</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>GET /api/v1/download/{name}/{version}/{file}</pre>
+                    </div>
+                    <p>Download a specific package file.</p>
+
+                    <h4>Upload Package</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>POST /api/v1/upload
+Authorization: Bearer {token}
+Content-Type: multipart/form-data</pre>
+                    </div>
+                    <p>Upload a new package (requires authentication).</p>
+
+                    <h4>Repository Statistics</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>GET /api/v1/stats</pre>
+                    </div>
+                    <p>Returns repository statistics and metrics.</p>
+
+                    <h4>Refresh Index</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>POST /api/v1/refresh
+Authorization: Bearer {token}</pre>
+                    </div>
+                    <p>Manually refresh the package index (requires authentication).</p>
+                </section>
+
+                <section id="authentication">
+                    <h2>Authentication</h2>
+                    <p>The repository server uses token-based authentication for operations that modify the repository:</p>
+
+                    <ul>
+                        <li>Package uploads</li>
+                        <li>Index refresh</li>
+                        <li>Administrative operations</li>
+                    </ul>
+
+                    <h3>Setting Up Authentication</h3>
+                    <ol>
+                        <li>Generate a secure token (recommended: 32+ characters)</li>
+                        <li>Set the token in your <code class="inline-code">config.json</code></li>
+                        <li>Include the token in API requests using the Authorization header</li>
+                    </ol>
+
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Example API request with authentication
+curl -H "Authorization: Bearer your-secret-token" \
+     -F "file=@package.criage" \
+     http://localhost:8080/api/v1/upload</pre>
+                    </div>
+                </section>
+
+                <section id="web-interface">
+                    <h2>Web Interface</h2>
+                    <p>The repository server includes a simple web interface for browsing packages:</p>
+
+                    <ul>
+                        <li><strong>Homepage:</strong> <code class="inline-code">http://localhost:8080/</code> - Repository overview</li>
+                        <li><strong>Package List:</strong> Browse all available packages</li>
+                        <li><strong>Search:</strong> Search packages by name or description</li>
+                        <li><strong>Package Details:</strong> View package information and download links</li>
+                    </ul>
+
+                    <div class="note">
+                        <strong>Custom Themes:</strong> The web interface can be customized by modifying the embedded HTML templates in the server source code.
+                    </div>
+                </section>
+
+                <section id="deployment">
+                    <h2>Deployment</h2>
+
+                    <h3>Docker Deployment</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Build Docker image
+docker build -t criage-repository .
+
+# Run container
+docker run -d \
+  --name criage-repo \
+  -p 8080:8080 \
+  -v /host/packages:/app/packages \
+  -v /host/config.json:/app/config.json \
+  criage-repository</pre>
+                    </div>
+
+                    <h3>Systemd Service</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>[Unit]
+Description=Criage Repository Server
+After=network.target
+
+[Service]
+Type=simple
+User=criage
+WorkingDirectory=/opt/criage-repository
+ExecStart=/opt/criage-repository/criage-repository
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</pre>
+                    </div>
+
+                    <h3>Reverse Proxy (Nginx)</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>server {
+    listen 80;
+    server_name packages.example.com;
+    
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</pre>
+                    </div>
+                </section>
+
+                <section id="monitoring">
+                    <h2>Monitoring</h2>
+                    <p>Monitor your repository server health and performance:</p>
+
+                    <h3>Health Check</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>curl http://localhost:8080/api/v1/</pre>
+                    </div>
+
+                    <h3>Log Files</h3>
+                    <p>Server logs include information about:</p>
+                    <ul>
+                        <li>HTTP requests and responses</li>
+                        <li>Package uploads and downloads</li>
+                        <li>Authentication attempts</li>
+                        <li>Errors and warnings</li>
+                    </ul>
+
+                    <h3>Metrics</h3>
+                    <p>The <code class="inline-code">/api/v1/stats</code> endpoint provides:</p>
+                    <ul>
+                        <li>Total package count</li>
+                        <li>Repository size</li>
+                        <li>Download statistics</li>
+                        <li>Upload statistics</li>
+                    </ul>
+                </section>
+
+                <section id="troubleshooting">
+                    <h2>Troubleshooting</h2>
+
+                    <h3>Common Issues</h3>
+
+                    <h4>Server Won't Start</h4>
+                    <ul>
+                        <li>Check if port 8080 is available</li>
+                        <li>Verify configuration file syntax</li>
+                        <li>Ensure storage directory exists and is writable</li>
+                    </ul>
+
+                    <h4>Upload Fails</h4>
+                    <ul>
+                        <li>Verify authentication token</li>
+                        <li>Check file size against <code class="inline-code">max_file_size</code></li>
+                        <li>Ensure file format is in <code class="inline-code">allowed_formats</code></li>
+                    </ul>
+
+                    <h4>Performance Issues</h4>
+                    <ul>
+                        <li>Monitor disk space and I/O</li>
+                        <li>Check memory usage</li>
+                        <li>Consider increasing <code class="inline-code">max_file_size</code> for large packages</li>
+                    </ul>
+
+                    <h3>Debug Mode</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Run with debug logging
+./criage-repository -config config.json -debug</pre>
+                    </div>
+
+                    <div class="note">
+                        <strong>Getting Help:</strong> If you encounter persistent issues, create an issue in the <a
+                            href="https://github.com/criage-oss/criage-server/issues" target="_blank">GitHub repository</a> with
+                        detailed problem description and debug logs.
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(button) {
+            const code = button.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#4caf50';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#444';
+                }, 2000);
+            });
+        }
+
+        // Sidebar navigation
+        document.addEventListener('DOMContentLoaded', function () {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+
+            function updateActiveLink() {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (pageYOffset >= sectionTop - 200) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateActiveLink);
+        });
+    </script>
+</body>
+
+</html>
