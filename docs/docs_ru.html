@@ -440,6 +440,7 @@
                     <li><a href="#configuration">Конфигурация</a></li>
                     <li><a href="#formats">Форматы сжатия</a></li>
                     <li><a href="#localization">Локализация</a></li>
+                    <li><a href="#api">Справочник API</a></li>
                     <li><a href="#troubleshooting">Решение проблем</a></li>
                 </ul>
             </aside>
@@ -615,8 +616,13 @@ criage build --output my-package-1.0.0.criage</pre>
                     <h3>Публикация пакета</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
-                        <pre># Опубликовать в репозитории
-criage publish --registry https://packages.example.com --token YOUR_TOKEN</pre>
+                        <pre># Опубликовать в репозитории используя обновленный API
+criage publish --registry https://packages.example.com --token YOUR_TOKEN
+
+# Или загрузить напрямую через API v1
+curl -X POST https://packages.example.com/api/v1/upload \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "package=@my-package-1.0.0.criage"</pre>
                     </div>
                 </section>
 
@@ -649,7 +655,14 @@ criage repo info myrepo
 criage repo remove myrepo
 
 # Обновить индексы всех репозиториев
-criage repo update</pre>
+criage repo update
+
+# Получить статистику репозитория
+criage repo stats myrepo
+
+# Обновить индекс репозитория (требует админ токен)
+curl -X POST https://packages.example.com/api/v1/refresh \
+  -H "Authorization: Bearer ADMIN_TOKEN"</pre>
                     </div>
 
                     <div class="note">
@@ -720,6 +733,7 @@ go build -o criage-mcp-server .</pre>
                                 <li><code class="inline-code">search_packages</code> - Поиск пакетов</li>
                                 <li><code class="inline-code">package_info</code> - Информация о пакете</li>
                                 <li><code class="inline-code">repository_info</code> - Информация о репозитории</li>
+                                <li><code class="inline-code">get_repository_stats</code> - Статистика репозитория</li>
                             </ul>
                         </div>
                         <div class="feature-card">
@@ -728,6 +742,7 @@ go build -o criage-mcp-server .</pre>
                                 <li><code class="inline-code">create_package</code> - Создание пакета</li>
                                 <li><code class="inline-code">build_package</code> - Сборка пакета</li>
                                 <li><code class="inline-code">publish_package</code> - Публикация пакета</li>
+                                <li><code class="inline-code">refresh_repository_index</code> - Обновление индекса (админ)</li>
                             </ul>
                         </div>
                     </div>
@@ -754,7 +769,12 @@ go build -o criage-mcp-server .</pre>
                     <h3>Конфигурация сервера</h3>
                     <p>MCP Server использует стандартную конфигурацию Criage из <code
                             class="inline-code">~/.criage/config.json</code>. При первом запуске автоматически создается
-                        конфигурация по умолчанию.</p>
+                        конфигурация по умолчанию с обновленными эндпоинтами API v1.</p>
+                    
+                    <div class="note">
+                        <strong>Обновление API v1:</strong> Все взаимодействия с репозиториями теперь используют эндпоинты <code class="inline-code">/api/v1/*</code> 
+                        для улучшенной совместимости и новых функций, таких как статистика репозитория и админ операции.
+                    </div>
 
                     <h3>Логирование и отладка</h3>
                     <div class="code-block">
@@ -961,6 +981,99 @@ criage install package-name</pre>
                         <strong>Вклад в проект:</strong> Помогите нам улучшить локализацию Criage! Смотрите наше <a
                             href="../LOCALIZATION.md" target="_blank">подробное руководство по локализации</a> для
                         получения полных инструкций по добавлению новых языков или улучшению существующих переводов.
+                    </div>
+                </section>
+
+                <section id="api">
+                    <h2>📡 Справочник API</h2>
+
+                    <p>Criage Repository Server предоставляет RESTful API для операций управления пакетами. Все эндпоинты используют префикс <code class="inline-code">/api/v1/*</code>.</p>
+
+                    <h3>Базовые эндпоинты</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>Информация о репозитории</h4>
+                            <ul>
+                                <li><code class="inline-code">GET /api/v1/</code> - Информация о репозитории</li>
+                                <li><code class="inline-code">GET /api/v1/stats</code> - Статистика репозитория</li>
+                                <li><code class="inline-code">POST /api/v1/refresh</code> - Обновление индекса (админ)</li>
+                            </ul>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Операции с пакетами</h4>
+                            <ul>
+                                <li><code class="inline-code">GET /api/v1/packages/{name}</code> - Информация о пакете</li>
+                                <li><code class="inline-code">GET /api/v1/search?q={query}</code> - Поиск пакетов</li>
+                                <li><code class="inline-code">POST /api/v1/upload</code> - Загрузка пакета (админ)</li>
+                                <li><code class="inline-code">GET /api/v1/download/{name}/{version}/{file}</code> - Скачивание файла</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>Формат ответов API</h3>
+                    <p>Все ответы API следуют единой структуре:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>{
+  "success": true,
+  "message": "Операция успешно завершена",
+  "data": { /* Данные ответа */ }
+}</pre>
+                    </div>
+
+                    <h3>Аутентификация</h3>
+                    <p>Админ операции требуют аутентификации через Bearer токен:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>Authorization: Bearer ваш-админ-токен</pre>
+                    </div>
+
+                    <h3>Структуры данных</h3>
+                    <h4>PackageEntry</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>{
+  "name": "package-name",
+  "description": "Описание пакета", 
+  "author": "Имя Автора",
+  "license": "MIT",
+  "homepage": "https://example.com",
+  "repository": "https://github.com/user/repo",
+  "keywords": ["тег1", "тег2"],
+  "latest_version": "1.2.3",
+  "versions": [/* объекты VersionEntry */],
+  "downloads": 12345,
+  "updated": "2024-12-13T10:30:00Z"
+}</pre>
+                    </div>
+
+                    <h4>VersionEntry</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>{
+  "version": "1.2.3",
+  "description": "Описание версии",
+  "dependencies": {"dep1": "^1.0.0"},
+  "dev_dependencies": {"devdep1": "^2.0.0"},
+  "files": [/* объекты FileEntry */],
+  "size": 1048576,
+  "checksum": "sha256:abc123...",
+  "uploaded": "2024-12-13T10:30:00Z",
+  "downloads": 456
+}</pre>
+                    </div>
+
+                    <h4>FileEntry</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                        <pre>{
+  "os": "windows",
+  "arch": "amd64", 
+  "format": "zip",
+  "filename": "package-1.2.3-windows-amd64.zip",
+  "size": 524288,
+  "checksum": "sha256:def456..."
+}</pre>
                     </div>
                 </section>
 

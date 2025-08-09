@@ -438,6 +438,7 @@
                     <li><a href="#configuration">Configuration</a></li>
                     <li><a href="#formats">Compression Formats</a></li>
                     <li><a href="#localization">Localization</a></li>
+                    <li><a href="#api">API Reference</a></li>
                     <li><a href="#troubleshooting">Troubleshooting</a></li>
                 </ul>
             </aside>
@@ -611,8 +612,13 @@ criage build --output my-package-1.0.0.criage</pre>
                     <h3>Publishing a Package</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-                        <pre># Publish to repository
-criage publish --registry https://packages.example.com --token YOUR_TOKEN</pre>
+                        <pre># Publish to repository using updated API
+criage publish --registry https://packages.example.com --token YOUR_TOKEN
+
+# Or upload directly via API v1
+curl -X POST https://packages.example.com/api/v1/upload \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "package=@my-package-1.0.0.criage"</pre>
                     </div>
                 </section>
 
@@ -645,7 +651,14 @@ criage repo info myrepo
 criage repo remove myrepo
 
 # Update all repository indexes
-criage repo update</pre>
+criage repo update
+
+# Get repository statistics
+criage repo stats myrepo
+
+# Refresh repository index (requires admin token)
+curl -X POST https://packages.example.com/api/v1/refresh \
+  -H "Authorization: Bearer ADMIN_TOKEN"</pre>
                     </div>
 
                     <div class="note">
@@ -716,6 +729,7 @@ go build -o criage-mcp-server .</pre>
                                 <li><code class="inline-code">search_packages</code> - Search packages</li>
                                 <li><code class="inline-code">package_info</code> - Package information</li>
                                 <li><code class="inline-code">repository_info</code> - Repository information</li>
+                                <li><code class="inline-code">get_repository_stats</code> - Repository statistics</li>
                             </ul>
                         </div>
                         <div class="feature-card">
@@ -724,6 +738,7 @@ go build -o criage-mcp-server .</pre>
                                 <li><code class="inline-code">create_package</code> - Create package</li>
                                 <li><code class="inline-code">build_package</code> - Build package</li>
                                 <li><code class="inline-code">publish_package</code> - Publish package</li>
+                                <li><code class="inline-code">refresh_repository_index</code> - Refresh index (admin)</li>
                             </ul>
                         </div>
                     </div>
@@ -750,7 +765,12 @@ go build -o criage-mcp-server .</pre>
                     <h3>Server Configuration</h3>
                     <p>MCP Server uses standard Criage configuration from <code
                             class="inline-code">~/.criage/config.json</code>. Default configuration is automatically
-                        created on first run.</p>
+                        created on first run with updated API v1 endpoints.</p>
+                    
+                    <div class="note">
+                        <strong>API v1 Update:</strong> All repository interactions now use <code class="inline-code">/api/v1/*</code> 
+                        endpoints for improved compatibility and features like repository statistics and admin operations.
+                    </div>
 
                     <h3>Logging and Debugging</h3>
                     <div class="code-block">
@@ -958,6 +978,99 @@ criage install package-name</pre>
                         <strong>Contributing:</strong> Help us improve Criage's localization! See our <a
                             href="../LOCALIZATION_EN.md" target="_blank">detailed localization guide</a> for complete
                         instructions on adding new languages or improving existing translations.
+                    </div>
+                </section>
+
+                <section id="api">
+                    <h2>📡 API Reference</h2>
+
+                    <p>Criage Repository Server provides a RESTful API for package management operations. All endpoints use the <code class="inline-code">/api/v1/*</code> prefix.</p>
+
+                    <h3>Base Endpoints</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>Repository Information</h4>
+                            <ul>
+                                <li><code class="inline-code">GET /api/v1/</code> - Repository info</li>
+                                <li><code class="inline-code">GET /api/v1/stats</code> - Repository statistics</li>
+                                <li><code class="inline-code">POST /api/v1/refresh</code> - Refresh index (admin)</li>
+                            </ul>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Package Operations</h4>
+                            <ul>
+                                <li><code class="inline-code">GET /api/v1/packages/{name}</code> - Package info</li>
+                                <li><code class="inline-code">GET /api/v1/search?q={query}</code> - Search packages</li>
+                                <li><code class="inline-code">POST /api/v1/upload</code> - Upload package (admin)</li>
+                                <li><code class="inline-code">GET /api/v1/download/{name}/{version}/{file}</code> - Download file</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>API Response Format</h3>
+                    <p>All API responses follow a consistent structure:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": { /* Response data */ }
+}</pre>
+                    </div>
+
+                    <h3>Authentication</h3>
+                    <p>Admin operations require Bearer token authentication:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>Authorization: Bearer your-admin-token</pre>
+                    </div>
+
+                    <h3>Data Structures</h3>
+                    <h4>PackageEntry</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>{
+  "name": "package-name",
+  "description": "Package description", 
+  "author": "Author Name",
+  "license": "MIT",
+  "homepage": "https://example.com",
+  "repository": "https://github.com/user/repo",
+  "keywords": ["tag1", "tag2"],
+  "latest_version": "1.2.3",
+  "versions": [/* VersionEntry objects */],
+  "downloads": 12345,
+  "updated": "2024-12-13T10:30:00Z"
+}</pre>
+                    </div>
+
+                    <h4>VersionEntry</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>{
+  "version": "1.2.3",
+  "description": "Version description",
+  "dependencies": {"dep1": "^1.0.0"},
+  "dev_dependencies": {"devdep1": "^2.0.0"},
+  "files": [/* FileEntry objects */],
+  "size": 1048576,
+  "checksum": "sha256:abc123...",
+  "uploaded": "2024-12-13T10:30:00Z",
+  "downloads": 456
+}</pre>
+                    </div>
+
+                    <h4>FileEntry</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre>{
+  "os": "windows",
+  "arch": "amd64", 
+  "format": "zip",
+  "filename": "package-1.2.3-windows-amd64.zip",
+  "size": 524288,
+  "checksum": "sha256:def456..."
+}</pre>
                     </div>
                 </section>
 
