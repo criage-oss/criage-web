@@ -415,16 +415,10 @@
             </a>
             <div class="nav-content">
                 <ul class="nav-links">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="docs.html">Client Docs</a></li>
-                    <li><a href="repository-server.html">Repository Server</a></li>
-                    <li><a href="mcp-server.html">MCP Server</a></li>
-                    <li><a href="cicd-examples.html">CI/CD Examples</a></li>
-                    <li><a href="https://github.com/criage-oss/criage-client" target="_blank">GitHub</a></li>
+                    <!-- Navigation links will be populated by navigation.js -->
                 </ul>
                 <div class="language-switcher">
-                    <a href="cicd-examples.html" class="lang-btn active">EN</a>
-                    <a href="cicd-examples_ru.html" class="lang-btn">RU</a>
+                    <!-- Language switcher will be populated by navigation.js -->
                 </div>
             </div>
         </nav>
@@ -1245,6 +1239,9 @@ criage logs --last 50</pre>
             window.addEventListener('scroll', updateActiveLink);
         });
     </script>
+    
+    <!-- Централизованная навигация -->
+    <script src="navigation.js"></script>
 </body>
 
 </html>

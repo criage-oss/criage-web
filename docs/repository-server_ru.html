@@ -372,16 +372,10 @@
             </a>
             <div class="nav-content">
                 <ul class="nav-links">
-                    <li><a href="index_ru.html">Главная</a></li>
-                    <li><a href="docs_ru.html">Документация клиента</a></li>
-                    <li><a href="repository-server_ru.html">Сервер репозитория</a></li>
-                    <li><a href="mcp-server_ru.html">MCP Server</a></li>
-                    <li><a href="cicd-examples_ru.html">Примеры CI/CD</a></li>
-                    <li><a href="https://github.com/criage-oss/criage-server" target="_blank">GitHub</a></li>
+                    <!-- Navigation links will be populated by navigation.js -->
                 </ul>
                 <div class="language-switcher">
-                    <a href="repository-server.html" class="lang-btn">EN</a>
-                    <a href="repository-server_ru.html" class="lang-btn active">RU</a>
+                    <!-- Language switcher will be populated by navigation.js -->
                 </div>
             </div>
         </nav>
@@ -856,6 +850,9 @@ WantedBy=multi-user.target</pre>
             window.addEventListener('scroll', updateActiveLink);
         });
     </script>
+    
+    <!-- Централизованная навигация -->
+    <script src="navigation.js"></script>
 </body>
 
 </html>
