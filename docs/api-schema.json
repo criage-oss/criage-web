@@ -1,0 +1,597 @@
+{
+  "apiVersion": "v1",
+  "name": "Criage Package Repository API",
+  "description": "API для системы управления пакетами Criage",
+  "baseUrl": "/api/v1",
+  "endpoints": {
+    "repository": {
+      "method": "GET",
+      "path": "/",
+      "description": "Получение общей информации о репозитории",
+      "parameters": {},
+      "response": {
+        "type": "ApiResponse",
+        "data": {
+          "name": "string",
+          "version": "string",
+          "last_updated": "timestamp",
+          "total_packages": "integer",
+          "formats": "array[string]"
+        }
+      }
+    },
+    "stats": {
+      "method": "GET",
+      "path": "/stats",
+      "description": "Получение статистики репозитория",
+      "parameters": {},
+      "response": {
+        "type": "ApiResponse",
+        "data": "Statistics"
+      }
+    },
+    "listPackages": {
+      "method": "GET",
+      "path": "/packages",
+      "description": "Получение списка всех пакетов с пагинацией",
+      "parameters": {
+        "page": {
+          "type": "integer",
+          "default": 1,
+          "description": "Номер страницы"
+        },
+        "limit": {
+          "type": "integer",
+          "default": 20,
+          "max": 100,
+          "description": "Количество элементов на странице"
+        }
+      },
+      "response": {
+        "type": "ApiResponse",
+        "data": {
+          "packages": "array[PackageEntry]",
+          "total": "integer",
+          "page": "integer",
+          "limit": "integer",
+          "total_pages": "integer"
+        }
+      }
+    },
+    "getPackage": {
+      "method": "GET",
+      "path": "/packages/{name}",
+      "description": "Получение информации о конкретном пакете",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "location": "path",
+          "required": true,
+          "description": "Имя пакета"
+        }
+      },
+      "response": {
+        "type": "ApiResponse",
+        "data": "PackageEntry"
+      }
+    },
+    "getPackageVersion": {
+      "method": "GET",
+      "path": "/packages/{name}/{version}",
+      "description": "Получение информации о конкретной версии пакета",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "location": "path",
+          "required": true,
+          "description": "Имя пакета"
+        },
+        "version": {
+          "type": "string",
+          "location": "path",
+          "required": true,
+          "description": "Версия пакета"
+        }
+      },
+      "response": {
+        "type": "ApiResponse",
+        "data": "VersionEntry"
+      }
+    },
+    "searchPackages": {
+      "method": "GET",
+      "path": "/search",
+      "description": "Поиск пакетов",
+      "parameters": {
+        "q": {
+          "type": "string",
+          "required": true,
+          "description": "Поисковый запрос"
+        },
+        "limit": {
+          "type": "integer",
+          "default": 20,
+          "max": 100,
+          "description": "Количество результатов"
+        }
+      },
+      "response": {
+        "type": "ApiResponse",
+        "data": {
+          "query": "string",
+          "results": "array[SearchResult]",
+          "total": "integer"
+        }
+      }
+    },
+    "downloadPackage": {
+      "method": "GET",
+      "path": "/download/{name}/{version}/{file}",
+      "description": "Скачивание файла пакета",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "location": "path",
+          "required": true,
+          "description": "Имя пакета"
+        },
+        "version": {
+          "type": "string",
+          "location": "path",
+          "required": true,
+          "description": "Версия пакета"
+        },
+        "file": {
+          "type": "string",
+          "location": "path",
+          "required": true,
+          "description": "Имя файла"
+        }
+      },
+      "response": {
+        "type": "binary",
+        "headers": {
+          "Content-Type": "application/octet-stream",
+          "Content-Disposition": "attachment; filename={filename}",
+          "Content-Length": "string",
+          "X-Checksum": "string"
+        }
+      }
+    },
+    "uploadPackage": {
+      "method": "POST",
+      "path": "/upload",
+      "description": "Загрузка нового пакета (требует авторизацию)",
+      "headers": {
+        "Authorization": {
+          "type": "string",
+          "required": true,
+          "format": "Bearer {token}",
+          "description": "Токен авторизации"
+        }
+      },
+      "body": {
+        "type": "multipart/form-data",
+        "fields": {
+          "package": {
+            "type": "file",
+            "required": true,
+            "description": "Файл пакета"
+          }
+        }
+      },
+      "response": {
+        "type": "ApiResponse",
+        "data": {
+          "filename": "string",
+          "size": "integer"
+        }
+      }
+    },
+    "refreshIndex": {
+      "method": "POST",
+      "path": "/refresh",
+      "description": "Принудительное обновление индекса (требует авторизацию)",
+      "headers": {
+        "Authorization": {
+          "type": "string",
+          "required": true,
+          "format": "Bearer {token}",
+          "description": "Токен авторизации"
+        }
+      },
+      "response": {
+        "type": "ApiResponse",
+        "data": {
+          "total_packages": "integer",
+          "last_updated": "timestamp"
+        }
+      }
+    }
+  },
+  "types": {
+    "ApiResponse": {
+      "description": "Стандартный ответ API",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Статус успешности операции"
+        },
+        "message": {
+          "type": "string",
+          "optional": true,
+          "description": "Сообщение о результате операции"
+        },
+        "data": {
+          "type": "any",
+          "optional": true,
+          "description": "Данные ответа"
+        },
+        "error": {
+          "type": "string",
+          "optional": true,
+          "description": "Описание ошибки (только при success: false)"
+        }
+      }
+    },
+    "PackageEntry": {
+      "description": "Запись о пакете в индексе репозитория",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Имя пакета"
+        },
+        "description": {
+          "type": "string",
+          "description": "Описание пакета"
+        },
+        "author": {
+          "type": "string",
+          "description": "Автор пакета"
+        },
+        "license": {
+          "type": "string",
+          "description": "Лицензия пакета"
+        },
+        "homepage": {
+          "type": "string",
+          "description": "Домашняя страница пакета"
+        },
+        "repository": {
+          "type": "string",
+          "description": "URL репозитория исходного кода"
+        },
+        "keywords": {
+          "type": "array[string]",
+          "description": "Ключевые слова пакета"
+        },
+        "versions": {
+          "type": "array[VersionEntry]",
+          "description": "Список версий пакета"
+        },
+        "latest_version": {
+          "type": "string",
+          "description": "Последняя версия пакета"
+        },
+        "downloads": {
+          "type": "integer",
+          "description": "Общее количество скачиваний"
+        },
+        "updated": {
+          "type": "timestamp",
+          "description": "Дата последнего обновления"
+        }
+      }
+    },
+    "VersionEntry": {
+      "description": "Конкретная версия пакета",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Номер версии"
+        },
+        "description": {
+          "type": "string",
+          "description": "Описание версии"
+        },
+        "dependencies": {
+          "type": "object[string: string]",
+          "description": "Зависимости (имя: версия)"
+        },
+        "dev_dependencies": {
+          "type": "object[string: string]",
+          "description": "Зависимости для разработки"
+        },
+        "files": {
+          "type": "array[FileEntry]",
+          "description": "Файлы пакета для разных платформ"
+        },
+        "size": {
+          "type": "integer",
+          "description": "Размер пакета в байтах"
+        },
+        "checksum": {
+          "type": "string",
+          "description": "Контрольная сумма пакета"
+        },
+        "uploaded": {
+          "type": "timestamp",
+          "description": "Дата загрузки"
+        },
+        "downloads": {
+          "type": "integer",
+          "description": "Количество скачиваний версии"
+        }
+      }
+    },
+    "FileEntry": {
+      "description": "Файл пакета для конкретной платформы",
+      "properties": {
+        "os": {
+          "type": "string",
+          "description": "Операционная система (windows, linux, darwin)"
+        },
+        "arch": {
+          "type": "string",
+          "description": "Архитектура (amd64, arm64, 386)"
+        },
+        "format": {
+          "type": "string",
+          "description": "Формат файла (criage, tar.zst, zip, etc.)"
+        },
+        "filename": {
+          "type": "string",
+          "description": "Имя файла"
+        },
+        "size": {
+          "type": "integer",
+          "description": "Размер файла в байтах"
+        },
+        "checksum": {
+          "type": "string",
+          "description": "Контрольная сумма файла"
+        }
+      }
+    },
+    "RepositoryIndex": {
+      "description": "Индекс всех пакетов в репозитории",
+      "properties": {
+        "last_updated": {
+          "type": "timestamp",
+          "description": "Дата последнего обновления индекса"
+        },
+        "total_packages": {
+          "type": "integer",
+          "description": "Общее количество пакетов"
+        },
+        "packages": {
+          "type": "object[string: PackageEntry]",
+          "description": "Карта пакетов (имя: данные)"
+        },
+        "statistics": {
+          "type": "Statistics",
+          "description": "Статистика репозитория"
+        }
+      }
+    },
+    "Statistics": {
+      "description": "Статистика репозитория",
+      "properties": {
+        "total_downloads": {
+          "type": "integer",
+          "description": "Общее количество скачиваний"
+        },
+        "packages_by_license": {
+          "type": "object[string: integer]",
+          "description": "Количество пакетов по лицензиям"
+        },
+        "packages_by_author": {
+          "type": "object[string: integer]",
+          "description": "Количество пакетов по авторам"
+        },
+        "popular_packages": {
+          "type": "array[string]",
+          "description": "Список популярных пакетов"
+        }
+      }
+    },
+    "SearchResult": {
+      "description": "Результат поиска пакета",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Имя пакета"
+        },
+        "version": {
+          "type": "string",
+          "description": "Последняя версия"
+        },
+        "description": {
+          "type": "string",
+          "description": "Описание пакета"
+        },
+        "author": {
+          "type": "string",
+          "description": "Автор пакета"
+        },
+        "downloads": {
+          "type": "integer",
+          "description": "Количество скачиваний"
+        },
+        "updated": {
+          "type": "timestamp",
+          "description": "Дата последнего обновления"
+        },
+        "score": {
+          "type": "float",
+          "description": "Релевантность результата поиска"
+        }
+      }
+    },
+    "Config": {
+      "description": "Конфигурация сервера репозитория",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "default": 8080,
+          "description": "Порт сервера"
+        },
+        "storage_path": {
+          "type": "string",
+          "default": "./packages",
+          "description": "Путь к директории с пакетами"
+        },
+        "index_path": {
+          "type": "string",
+          "default": "./index.json",
+          "description": "Путь к файлу индекса"
+        },
+        "upload_token": {
+          "type": "string",
+          "description": "Секретный токен для загрузки пакетов"
+        },
+        "max_file_size": {
+          "type": "integer",
+          "default": 104857600,
+          "description": "Максимальный размер файла в байтах (100MB)"
+        },
+        "allowed_formats": {
+          "type": "array[string]",
+          "default": ["criage", "tar.zst", "tar.lz4", "tar.xz", "tar.gz", "zip"],
+          "description": "Разрешенные форматы файлов"
+        },
+        "enable_cors": {
+          "type": "boolean",
+          "default": true,
+          "description": "Включить поддержку CORS"
+        },
+        "log_level": {
+          "type": "string",
+          "default": "info",
+          "description": "Уровень логирования"
+        }
+      }
+    }
+  },
+  "errors": {
+    "400": {
+      "description": "Неверный запрос",
+      "examples": [
+        "Search query is required",
+        "Failed to parse form",
+        "Unsupported file format"
+      ]
+    },
+    "401": {
+      "description": "Требуется авторизация",
+      "examples": [
+        "Invalid token"
+      ]
+    },
+    "404": {
+      "description": "Ресурс не найден",
+      "examples": [
+        "Package not found",
+        "Version not found",
+        "File not found"
+      ]
+    },
+    "500": {
+      "description": "Внутренняя ошибка сервера",
+      "examples": [
+        "Failed to refresh index",
+        "Failed to create file",
+        "Failed to save file"
+      ]
+    }
+  },
+  "middleware": {
+    "cors": {
+      "description": "CORS middleware для поддержки междоменных запросов",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
+    },
+    "logging": {
+      "description": "Middleware для логирования HTTP запросов",
+      "format": "{method} {path} {duration}"
+    }
+  },
+  "security": {
+    "uploadToken": {
+      "type": "bearer",
+      "description": "Bearer токен для операций загрузки и управления",
+      "required_for": [
+        "/upload",
+        "/refresh"
+      ]
+    }
+  },
+  "fileFormats": [
+    "criage",
+    "tar.zst",
+    "tar.lz4", 
+    "tar.xz",
+    "tar.gz",
+    "zip"
+  ],
+  "examples": {
+    "getPackages": {
+      "request": "GET /api/v1/packages?page=1&limit=10",
+      "response": {
+        "success": true,
+        "data": {
+          "packages": [
+            {
+              "name": "example-package",
+              "description": "Example package description",
+              "author": "John Doe",
+              "license": "MIT",
+              "latest_version": "1.0.0",
+              "downloads": 1234,
+              "updated": "2024-01-15T10:30:00Z"
+            }
+          ],
+          "total": 1,
+          "page": 1,
+          "limit": 10,
+          "total_pages": 1
+        }
+      }
+    },
+    "searchPackages": {
+      "request": "GET /api/v1/search?q=web&limit=5",
+      "response": {
+        "success": true,
+        "data": {
+          "query": "web",
+          "results": [
+            {
+              "name": "web-framework",
+              "version": "2.1.0",
+              "description": "Modern web framework",
+              "author": "WebDev",
+              "downloads": 5678,
+              "updated": "2024-01-10T15:20:00Z",
+              "score": 0.95
+            }
+          ],
+          "total": 1
+        }
+      }
+    },
+    "uploadPackage": {
+      "request": "POST /api/v1/upload\nAuthorization: Bearer your-secret-token\nContent-Type: multipart/form-data\n\n[package file]",
+      "response": {
+        "success": true,
+        "data": {
+          "filename": "my-package-1.0.0.criage",
+          "size": 1048576
+        },
+        "message": "Package uploaded successfully"
+      }
+    }
+  }
+}
