@@ -8,9 +8,15 @@
 
 ### 📍 Старые адреса → Новые адреса
 
-- `github.com/Zu-Krein/criage` → `github.com/criage-oss/criage`
-- `github.com/criage/criage` → `github.com/criage-oss/criage`
-- Все связанные ссылки на issues, документацию и лицензии
+**Монорепозиторий разделен на специализированные репозитории:**
+
+- `github.com/Zu-Krein/criage` → `github.com/criage-oss/criage-client`
+- `github.com/criage/criage` → `github.com/criage-oss/criage-client`
+- **Новая структура:**
+  - Client: `github.com/criage-oss/criage-client`
+  - Server: `github.com/criage-oss/criage-server`
+  - MCP: `github.com/criage-oss/criage-mcp`
+  - Web: `github.com/criage-oss/criage-web`
 
 ## ✅ Обновленные файлы
 
@@ -82,31 +88,31 @@
 - **Внешние зависимости** (`github.com/shurcooL/goexec`) - не связаны с Criage
 - **Примеры в документации** (`github.com/user/repo`) - общие примеры
 
-### 🔗 Новая структура ссылок
+### 🔗 Новая структура репозиториев
 
-**Основной репозиторий:**
+**Специализированные репозитории:**
 
 ```text
-https://github.com/criage-oss/criage
+Client:  https://github.com/criage-oss/criage-client
+Server:  https://github.com/criage-oss/criage-server
+MCP:     https://github.com/criage-oss/criage-mcp
+Web:     https://github.com/criage-oss/criage-web
 ```
 
-**Ссылки на подпроекты:**
-
-- Client: `https://github.com/criage-oss/criage/tree/main/criage-client`
-- Server: `https://github.com/criage-oss/criage/tree/main/criage-server`  
-- MCP: `https://github.com/criage-oss/criage/tree/main/criage-mcp`
-- Docs: `https://github.com/criage-oss/criage/tree/main/criage.ru`
-
-**Поддержка:**
+**Поддержка (по компонентам):**
 
 ```text
-https://github.com/criage-oss/criage/issues
+Client Issues:  https://github.com/criage-oss/criage-client/issues
+Server Issues:  https://github.com/criage-oss/criage-server/issues
+MCP Issues:     https://github.com/criage-oss/criage-mcp/issues
 ```
 
-**Лицензия:**
+**Лицензии:**
 
 ```text
-https://github.com/criage-oss/criage/blob/main/LICENSE
+Client:  https://github.com/criage-oss/criage-client/blob/main/LICENSE
+Server:  https://github.com/criage-oss/criage-server/blob/main/LICENSE
+MCP:     https://github.com/criage-oss/criage-mcp/blob/main/LICENSE
 ```
 
 ## 🚀 Статус миграции
@@ -129,10 +135,12 @@ https://github.com/criage-oss/criage/blob/main/LICENSE
 
 ## 📝 Рекомендации
 
-1. **Переадресация на GitHub:** Настроить редирект со старых репозиториев на новые
-2. **Уведомление пользователей:** Информировать существующих пользователей о смене адреса
+1. **Переадресация на GitHub:** Настроить редирект со старых репозиториев на новые специализированные
+2. **Уведомление пользователей:** Информировать существующих пользователей о новой структуре репозиториев
 3. **Поисковые системы:** Обновить ссылки в поисковых системах и индексах пакетов
-4. **CI/CD:** Обновить конфигурации автоматических сборок, если они используют старые адреса
+4. **CI/CD:** Обновить конфигурации автоматических сборок для каждого компонента отдельно
+5. **Документация:** Убедиться, что внешняя документация ссылается на правильные репозитории
+6. **Зависимости:** Проверить, что Go модули и другие зависимости обновлены на новые пути
 
 ---
 Миграция выполнена: 2024-01-15 | Ответственный: AI Assistant
