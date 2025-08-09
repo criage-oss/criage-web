@@ -1,0 +1,307 @@
+name: Release All Criage Components
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  VERSION: ${{ github.event.inputs.version || '1.0.0' }}
+
+jobs:
+  create-tags:
+    name: Create Release Tags
+    runs-on: ubuntu-latest
+    outputs:
+      client-repo: ${{ steps.repos.outputs.client }}
+      server-repo: ${{ steps.repos.outputs.server }}
+      mcp-repo: ${{ steps.repos.outputs.mcp }}
+    steps:
+      - name: Set repository names
+        id: repos
+        run: |
+          echo "client=criage-oss/criage-client" >> $GITHUB_OUTPUT
+          echo "server=criage-oss/criage-server" >> $GITHUB_OUTPUT
+          echo "mcp=criage-oss/criage-mcp" >> $GITHUB_OUTPUT
+
+      - name: Create release tag for criage-client
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            try {
+              await github.rest.git.createRef({
+                owner: 'criage-oss',
+                repo: 'criage-client',
+                ref: 'refs/tags/v${{ env.VERSION }}',
+                sha: await github.rest.repos.getBranch({
+                  owner: 'criage-oss',
+                  repo: 'criage-client',
+                  branch: 'main'
+                }).then(r => r.data.commit.sha)
+              });
+              console.log('Created tag v${{ env.VERSION }} for criage-client');
+            } catch (error) {
+              if (error.status === 422) {
+                console.log('Tag v${{ env.VERSION }} already exists for criage-client');
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Create release tag for criage-server
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            try {
+              await github.rest.git.createRef({
+                owner: 'criage-oss',
+                repo: 'criage-server',
+                ref: 'refs/tags/v${{ env.VERSION }}',
+                sha: await github.rest.repos.getBranch({
+                  owner: 'criage-oss',
+                  repo: 'criage-server',
+                  branch: 'main'
+                }).then(r => r.data.commit.sha)
+              });
+              console.log('Created tag v${{ env.VERSION }} for criage-server');
+            } catch (error) {
+              if (error.status === 422) {
+                console.log('Tag v${{ env.VERSION }} already exists for criage-server');
+              } else {
+                throw error;
+              }
+            }
+
+      - name: Create release tag for criage-mcp
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            try {
+              await github.rest.git.createRef({
+                owner: 'criage-oss',
+                repo: 'criage-mcp',
+                ref: 'refs/tags/v${{ env.VERSION }}',
+                sha: await github.rest.repos.getBranch({
+                  owner: 'criage-oss',
+                  repo: 'criage-mcp',
+                  branch: 'main'
+                }).then(r => r.data.commit.sha)
+              });
+              console.log('Created tag v${{ env.VERSION }} for criage-mcp');
+            } catch (error) {
+              if (error.status === 422) {
+                console.log('Tag v${{ env.VERSION }} already exists for criage-mcp');
+              } else {
+                throw error;
+              }
+            }
+
+  wait-for-builds:
+    name: Wait for Component Builds
+    runs-on: ubuntu-latest
+    needs: create-tags
+    steps:
+      - name: Wait for criage-client build
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            const maxWaitTime = 30 * 60 * 1000; // 30 минут
+            const startTime = Date.now();
+            
+            while (Date.now() - startTime < maxWaitTime) {
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner: 'criage-oss',
+                repo: 'criage-client',
+                workflow_id: 'build-and-release.yml',
+                head_sha: await github.rest.repos.getBranch({
+                  owner: 'criage-oss',
+                  repo: 'criage-client',
+                  branch: 'main'
+                }).then(r => r.data.commit.sha)
+              });
+              
+              const run = runs.data.workflow_runs[0];
+              if (run && (run.conclusion === 'success' || run.conclusion === 'failure')) {
+                if (run.conclusion === 'failure') {
+                  throw new Error('criage-client build failed');
+                }
+                console.log('criage-client build completed successfully');
+                break;
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, 30000)); // Ждем 30 сек
+            }
+
+      - name: Wait for criage-server build
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            const maxWaitTime = 30 * 60 * 1000; // 30 минут
+            const startTime = Date.now();
+            
+            while (Date.now() - startTime < maxWaitTime) {
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner: 'criage-oss',
+                repo: 'criage-server',
+                workflow_id: 'build-and-release.yml',
+                head_sha: await github.rest.repos.getBranch({
+                  owner: 'criage-oss',
+                  repo: 'criage-server',
+                  branch: 'main'
+                }).then(r => r.data.commit.sha)
+              });
+              
+              const run = runs.data.workflow_runs[0];
+              if (run && (run.conclusion === 'success' || run.conclusion === 'failure')) {
+                if (run.conclusion === 'failure') {
+                  throw new Error('criage-server build failed');
+                }
+                console.log('criage-server build completed successfully');
+                break;
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, 30000)); // Ждем 30 сек
+            }
+
+      - name: Wait for criage-mcp build
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            const maxWaitTime = 30 * 60 * 1000; // 30 минут
+            const startTime = Date.now();
+            
+            while (Date.now() - startTime < maxWaitTime) {
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner: 'criage-oss',
+                repo: 'criage-mcp',
+                workflow_id: 'build-and-release.yml',
+                head_sha: await github.rest.repos.getBranch({
+                  owner: 'criage-oss',
+                  repo: 'criage-mcp',
+                  branch: 'main'
+                }).then(r => r.data.commit.sha)
+              });
+              
+              const run = runs.data.workflow_runs[0];
+              if (run && (run.conclusion === 'success' || run.conclusion === 'failure')) {
+                if (run.conclusion === 'failure') {
+                  throw new Error('criage-mcp build failed');
+                }
+                console.log('criage-mcp build completed successfully');
+                break;
+              }
+              
+              await new Promise(resolve => setTimeout(resolve, 30000)); // Ждем 30 сек
+            }
+
+  create-meta-release:
+    name: Create Meta Release
+    runs-on: ubuntu-latest
+    needs: [create-tags, wait-for-builds]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create Meta Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Criage v${{ env.VERSION }} - Complete Package Manager Suite
+          body: |
+            # 🚀 Criage v${{ env.VERSION }} - Полный пакет инструментов
+            
+            Комплексный релиз всех компонентов пакетного менеджера Criage.
+            
+            ## 📦 Компоненты релиза:
+            
+            ### [Criage Client v${{ env.VERSION }}](https://github.com/criage-oss/criage-client/releases/tag/v${{ env.VERSION }})
+            - 🖥️ Основной пакетный менеджер
+            - ⚡ Высокая производительность на Go
+            - 🗜️ Поддержка множества форматов сжатия
+            - 🌐 Кроссплатформенность (Windows, macOS, Linux)
+            
+            ### [Criage Server v${{ env.VERSION }}](https://github.com/criage-oss/criage-server/releases/tag/v${{ env.VERSION }})
+            - 🌐 HTTP сервер репозитория пакетов
+            - 📡 REST API для управления пакетами
+            - 🔒 Поддержка авторизации и безопасности
+            - 📊 Веб-интерфейс для администрирования
+            
+            ### [Criage MCP Server v${{ env.VERSION }}](https://github.com/criage-oss/criage-mcp/releases/tag/v${{ env.VERSION }})
+            - 🤖 Интеграция с AI инструментами (Claude Desktop)
+            - 📡 Model Context Protocol (MCP) сервер
+            - 🛠️ Инструменты для управления пакетами через AI
+            - 💬 Поддержка natural language команд
+            
+            ## 🚀 Quick Start:
+            
+            ```bash
+            # Установка клиента
+            wget https://github.com/criage-oss/criage-client/releases/download/v${{ env.VERSION }}/criage-linux-amd64.tar.gz
+            tar -xzf criage-linux-amd64.tar.gz
+            sudo mv criage /usr/local/bin/
+            
+            # Установка пакета
+            criage install package-name
+            ```
+            
+            ## 🐳 Docker Images:
+            - `criage/client:${{ env.VERSION }}`
+            - `criage/server:${{ env.VERSION }}`
+            - `criage/mcp-server:${{ env.VERSION }}`
+            
+            ## 📚 Документация:
+            - [Основная документация](https://criage.ru)
+            - [Клиент](https://criage.ru/docs.html)
+            - [Сервер](https://criage.ru/repository-server.html)
+            - [MCP Server](https://criage.ru/mcp-server.html)
+            
+            ## 🔗 Ссылки:
+            - [Официальный сайт](https://criage.ru)
+            - [GitHub Organization](https://github.com/criage-oss)
+            - [Сообщить об ошибке](https://github.com/criage-oss/criage-client/issues)
+            
+            ---
+            
+            **Полное описание изменений доступно в индивидуальных релизах каждого компонента.**
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-website:
+    name: Update Website
+    runs-on: ubuntu-latest
+    needs: create-meta-release
+    steps:
+      - name: Checkout website
+        uses: actions/checkout@v4
+
+      - name: Update version info
+        run: |
+          # Обновляем версию в JSON файле для сайта
+          echo '{"version": "${{ env.VERSION }}", "released": "'$(date -Iseconds)'"}' > docs/latest-version.json
+          
+          # Обновляем README если нужно
+          sed -i 's/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: ${{ env.VERSION }}/g' README.md || true
+
+      - name: Commit version update
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/latest-version.json README.md
+          git commit -m "Update version to v${{ env.VERSION }}" || exit 0
+          git push

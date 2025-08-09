@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "released": "2025-01-09T22:40:00Z",
+  "components": {
+    "client": {
+      "name": "Criage Client",
+      "version": "1.0.0",
+      "repository": "https://github.com/criage-oss/criage-client",
+      "download_url": "https://github.com/criage-oss/criage-client/releases/latest",
+      "docker_image": "criage/client:1.0.0"
+    },
+    "server": {
+      "name": "Criage Server", 
+      "version": "1.0.0",
+      "repository": "https://github.com/criage-oss/criage-server",
+      "download_url": "https://github.com/criage-oss/criage-server/releases/latest",
+      "docker_image": "criage/server:1.0.0"
+    },
+    "mcp": {
+      "name": "Criage MCP Server",
+      "version": "1.0.0", 
+      "repository": "https://github.com/criage-oss/criage-mcp",
+      "download_url": "https://github.com/criage-oss/criage-mcp/releases/latest",
+      "docker_image": "criage/mcp-server:1.0.0"
+    }
+  },
+  "platforms": ["windows-amd64", "windows-arm64", "linux-amd64", "linux-arm64", "darwin-amd64", "darwin-arm64"],
+  "announcement": "Первый стабильный релиз пакетного менеджера Criage с полной поддержкой всех компонентов!"
+}
