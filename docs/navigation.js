@@ -100,30 +100,51 @@ class NavigationManager {
      * Создает навигационные ссылки
      */
     createNavigationLinks() {
+        let links = '';
+        
+        // Добавляем локальные ссылки для главной страницы
+        const localLinks = this.createLocalPageLinks();
+        if (localLinks) {
+            links += localLinks + '\n                    ';
+        }
+        
+        // Добавляем глобальные навигационные ссылки
         const config = NavigationConfig.languages[this.currentLanguage];
-        const links = config.links.map(link => {
+        const globalLinks = config.links.map(link => {
             const isActive = link.id === this.currentPageId;
             const activeClass = isActive ? ' class="active"' : '';
             return `<li><a href="${link.href}"${activeClass}>${link.text}</a></li>`;
         }).join('\n                    ');
+        
+        links += globalLinks;
 
+        // Добавляем GitHub ссылку
         const githubLink = this.getGitHubLink();
-        return links + `\n                    <li><a href="${githubLink}" target="_blank">GitHub</a></li>`;
+        links += `\n                    <li><a href="${githubLink}" target="_blank">GitHub</a></li>`;
+        
+        return links;
     }
 
     /**
-     * Создает только глобальные навигационные ссылки (для добавления к существующим)
+     * Создает локальные якорные ссылки для главной страницы
      */
-    createGlobalNavigationLinks() {
-        const config = NavigationConfig.languages[this.currentLanguage];
-        const links = config.links.map(link => {
-            const isActive = link.id === this.currentPageId;
-            const activeClass = isActive ? ' class="active"' : '';
-            return `<li><a href="${link.href}"${activeClass}>${link.text}</a></li>`;
-        }).join('\n                    ');
+    createLocalPageLinks() {
+        if (this.currentPageId !== 'home') return '';
+        
+        const isRussian = this.currentLanguage === 'ru';
+        const localLinks = isRussian ? [
+            { href: "#features", text: "Возможности" },
+            { href: "#installation", text: "Установка" },
+            { href: "#commands", text: "Команды" }
+        ] : [
+            { href: "#features", text: "Features" },
+            { href: "#installation", text: "Installation" },
+            { href: "#commands", text: "Commands" }
+        ];
 
-        const githubLink = this.getGitHubLink();
-        return links + `\n                    <li><a href="${githubLink}" target="_blank">GitHub</a></li>`;
+        return localLinks.map(link => 
+            `<li><a href="${link.href}">${link.text}</a></li>`
+        ).join('\n                    ');
     }
 
     /**
@@ -148,27 +169,13 @@ class NavigationManager {
     }
 
     /**
-     * Определяет, нужно ли добавлять ссылки к существующим или заменять полностью
-     */
-    shouldAppendLinks() {
-        // На главной странице есть локальные ссылки, которые нужно сохранить
-        return this.currentPageId === 'home';
-    }
-
-    /**
      * Рендерит навигацию в указанный селектор
      */
     renderNavigation(selector = '.nav-links') {
         const navContainer = document.querySelector(selector);
         if (navContainer) {
-            if (this.shouldAppendLinks()) {
-                // Добавляем глобальные ссылки к существующим локальным
-                const globalLinks = this.createGlobalNavigationLinks();
-                navContainer.insertAdjacentHTML('beforeend', globalLinks);
-            } else {
-                // Полная замена навигации
-                navContainer.innerHTML = this.createNavigationLinks();
-            }
+            // Всегда полная замена навигации
+            navContainer.innerHTML = this.createNavigationLinks();
         }
 
         const langSwitcher = document.querySelector('.language-switcher');
