@@ -107,111 +107,12 @@ jobs:
               }
             }
 
-  wait-for-builds:
-    name: Wait for Component Builds
-    runs-on: ubuntu-latest
-    needs: create-tags
-    steps:
-      - name: Wait for criage-client build
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.PAT_TOKEN }}
-          script: |
-            const maxWaitTime = 30 * 60 * 1000; // 30 минут
-            const startTime = Date.now();
-            
-            while (Date.now() - startTime < maxWaitTime) {
-              const runs = await github.rest.actions.listWorkflowRuns({
-                owner: 'criage-oss',
-                repo: 'criage-client',
-                workflow_id: 'build-and-release.yml',
-                head_sha: await github.rest.repos.getBranch({
-                  owner: 'criage-oss',
-                  repo: 'criage-client',
-                  branch: 'main'
-                }).then(r => r.data.commit.sha)
-              });
-              
-              const run = runs.data.workflow_runs[0];
-              if (run && (run.conclusion === 'success' || run.conclusion === 'failure')) {
-                if (run.conclusion === 'failure') {
-                  throw new Error('criage-client build failed');
-                }
-                console.log('criage-client build completed successfully');
-                break;
-              }
-              
-              await new Promise(resolve => setTimeout(resolve, 30000)); // Ждем 30 сек
-            }
-
-      - name: Wait for criage-server build
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.PAT_TOKEN }}
-          script: |
-            const maxWaitTime = 30 * 60 * 1000; // 30 минут
-            const startTime = Date.now();
-            
-            while (Date.now() - startTime < maxWaitTime) {
-              const runs = await github.rest.actions.listWorkflowRuns({
-                owner: 'criage-oss',
-                repo: 'criage-server',
-                workflow_id: 'build-and-release.yml',
-                head_sha: await github.rest.repos.getBranch({
-                  owner: 'criage-oss',
-                  repo: 'criage-server',
-                  branch: 'main'
-                }).then(r => r.data.commit.sha)
-              });
-              
-              const run = runs.data.workflow_runs[0];
-              if (run && (run.conclusion === 'success' || run.conclusion === 'failure')) {
-                if (run.conclusion === 'failure') {
-                  throw new Error('criage-server build failed');
-                }
-                console.log('criage-server build completed successfully');
-                break;
-              }
-              
-              await new Promise(resolve => setTimeout(resolve, 30000)); // Ждем 30 сек
-            }
-
-      - name: Wait for criage-mcp build
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.PAT_TOKEN }}
-          script: |
-            const maxWaitTime = 30 * 60 * 1000; // 30 минут
-            const startTime = Date.now();
-            
-            while (Date.now() - startTime < maxWaitTime) {
-              const runs = await github.rest.actions.listWorkflowRuns({
-                owner: 'criage-oss',
-                repo: 'criage-mcp',
-                workflow_id: 'build-and-release.yml',
-                head_sha: await github.rest.repos.getBranch({
-                  owner: 'criage-oss',
-                  repo: 'criage-mcp',
-                  branch: 'main'
-                }).then(r => r.data.commit.sha)
-              });
-              
-              const run = runs.data.workflow_runs[0];
-              if (run && (run.conclusion === 'success' || run.conclusion === 'failure')) {
-                if (run.conclusion === 'failure') {
-                  throw new Error('criage-mcp build failed');
-                }
-                console.log('criage-mcp build completed successfully');
-                break;
-              }
-              
-              await new Promise(resolve => setTimeout(resolve, 30000)); // Ждем 30 сек
-            }
+  # Removed cross-repo polling to avoid PAT token requirement; rely on tag-triggered builds
 
   create-meta-release:
     name: Create Meta Release
     runs-on: ubuntu-latest
-    needs: [create-tags, wait-for-builds]
+    needs: create-tags
     steps:
       - name: Checkout
         uses: actions/checkout@v4
