@@ -489,11 +489,10 @@ go build -o criage-repository
                         <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
                         <pre>{
   <span class="json-key">"port"</span>: <span class="json-number">8080</span>,
-  <span class="json-key">"storage_path"</span>: <span class="json-string">"./packages"</span>,
-  <span class="json-key">"index_path"</span>: <span class="json-string">"./index.json"</span>,
-  <span class="json-key">"upload_token"</span>: <span class="json-string">"your-secret-token"</span>,
-  <span class="json-key">"max_file_size"</span>: <span class="json-number">104857600</span>,
-  <span class="json-key">"allowed_formats"</span>: [
+  <span class="json-key">"storagePath"</span>: <span class="json-string">"./packages"</span>,
+  <span class="json-key">"indexPath"</span>: <span class="json-string">"./index.json"</span>,
+  <span class="json-key">"maxFileSize"</span>: <span class="json-number">104857600</span>,
+  <span class="json-key">"allowedFormats"</span>: [
     <span class="json-string">"criage"</span>,
     <span class="json-string">"tar.zst"</span>,
     <span class="json-string">"tar.lz4"</span>,
@@ -501,8 +500,10 @@ go build -o criage-repository
     <span class="json-string">"tar.gz"</span>,
     <span class="json-string">"zip"</span>
   ],
-  <span class="json-key">"enable_cors"</span>: <span class="json-boolean">true</span>,
-  <span class="json-key">"log_level"</span>: <span class="json-string">"info"</span>
+  <span class="json-key">"authEnabled"</span>: <span class="json-boolean">false</span>,
+  <span class="json-key">"logLevel"</span>: <span class="json-string">"info"</span>,
+  <span class="json-key">"CORSEnabled"</span>: <span class="json-boolean">true</span>,
+  <span class="json-key">"CORSOrigins"</span>: [<span class="json-string">"*"</span>]
 }</pre>
                     </div>
 
@@ -521,43 +522,43 @@ go build -o criage-repository
                             <td>HTTP server port</td>
                         </tr>
                         <tr>
-                            <td><code class="inline-code">storage_path</code></td>
+                            <td><code class="inline-code">storagePath</code></td>
                             <td>string</td>
                             <td>./packages</td>
                             <td>Directory for storing packages</td>
                         </tr>
                         <tr>
-                            <td><code class="inline-code">index_path</code></td>
+                            <td><code class="inline-code">indexPath</code></td>
                             <td>string</td>
                             <td>./index.json</td>
                             <td>Package index file location</td>
                         </tr>
                         <tr>
-                            <td><code class="inline-code">upload_token</code></td>
-                            <td>string</td>
-                            <td>-</td>
-                            <td>Authentication token for uploads</td>
+                            <td><code class="inline-code">authEnabled</code></td>
+                            <td>boolean</td>
+                            <td>false</td>
+                            <td>Enable Bearer token check (token is read from server env <code class="inline-code">CRIAGE_UPLOAD_TOKEN</code>)</td>
                         </tr>
                         <tr>
-                            <td><code class="inline-code">max_file_size</code></td>
+                            <td><code class="inline-code">maxFileSize</code></td>
                             <td>integer</td>
                             <td>104857600</td>
                             <td>Maximum upload size (bytes)</td>
                         </tr>
                         <tr>
-                            <td><code class="inline-code">allowed_formats</code></td>
+                            <td><code class="inline-code">allowedFormats</code></td>
                             <td>array</td>
                             <td>See above</td>
                             <td>Supported archive formats</td>
                         </tr>
                         <tr>
-                            <td><code class="inline-code">enable_cors</code></td>
+                            <td><code class="inline-code">CORSEnabled</code></td>
                             <td>boolean</td>
                             <td>true</td>
                             <td>Enable CORS headers</td>
                         </tr>
                         <tr>
-                            <td><code class="inline-code">log_level</code></td>
+                            <td><code class="inline-code">logLevel</code></td>
                             <td>string</td>
                             <td>info</td>
                             <td>Logging level (debug, info, warn, error)</td>
@@ -565,7 +566,7 @@ go build -o criage-repository
                     </table>
 
                     <div class="warning">
-                        <strong>Security Note:</strong> Make sure to change the default <code class="inline-code">upload_token</code> to a secure random value in production environments.
+                        <strong>Security Note:</strong> For protected operations enable <code class="inline-code">authEnabled</code> and set <code class="inline-code">CRIAGE_UPLOAD_TOKEN</code> in the server environment.
                     </div>
                 </section>
 
@@ -782,15 +783,15 @@ WantedBy=multi-user.target</pre>
                     <h4>Upload Fails</h4>
                     <ul>
                         <li>Verify authentication token</li>
-                        <li>Check file size against <code class="inline-code">max_file_size</code></li>
-                        <li>Ensure file format is in <code class="inline-code">allowed_formats</code></li>
+                        <li>Check file size against <code class="inline-code">maxFileSize</code></li>
+                        <li>Ensure file format is in <code class="inline-code">allowedFormats</code></li>
                     </ul>
 
                     <h4>Performance Issues</h4>
                     <ul>
                         <li>Monitor disk space and I/O</li>
                         <li>Check memory usage</li>
-                        <li>Consider increasing <code class="inline-code">max_file_size</code> for large packages</li>
+                        <li>Consider increasing <code class="inline-code">maxFileSize</code> for large packages</li>
                     </ul>
 
                     <h3>Debug Mode</h3>
