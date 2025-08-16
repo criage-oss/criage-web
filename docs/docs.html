@@ -37,6 +37,7 @@
 
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="sitemap" type="application/xml" href="https://criage.ru/sitemap.xml">
+    <link rel="stylesheet" href="navigation-styles.css">
 
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -405,7 +406,7 @@
         <nav class="container">
             <a href="index.html" class="logo">
                 <img src="logo.png" alt="Criage Logo">
-                Criage
+                <span class="logo-text">Criage</span>
             </a>
             <div class="nav-content">
                 <ul class="nav-links">
@@ -414,6 +415,18 @@
                 <div class="language-switcher">
                     <!-- Language switcher will be populated by navigation.js -->
                 </div>
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="mobile-nav" id="mobileNav">
+                <ul class="nav-links">
+                    <!-- Mobile navigation will be populated by navigation.js -->
+                </ul>
             </div>
         </nav>
     </header>
@@ -1179,8 +1192,11 @@ criage config set repository.timeout 30</pre>
         });
     </script>
     
-    <!-- Централизованная навигация -->
-    <script src="navigation.js"></script>
+    <!-- Основная навигация -->
+    <script src="navigation.js" async onerror="console.log('Navigation.js failed to load, using simple navigation')"></script>
+    
+    <!-- Упрощенная навигация как fallback -->
+    <script src="simple-navigation.js"></script>
 </body>
 
 </html>
