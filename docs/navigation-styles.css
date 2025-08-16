@@ -55,25 +55,23 @@
 .nav-link:hover {
     color: var(--primary-color, #2563eb) !important;
     background: rgba(37, 99, 235, 0.1) !important;
-    transform: translateY(-1px) !important;
+    transform: none !important;
 }
 
 .nav-link.active {
-    color: var(--primary-color, #2563eb) !important;
-    background: rgba(37, 99, 235, 0.1) !important;
+    color: white !important;
+    background: var(--primary-color, #2563eb) !important;
     font-weight: 600 !important;
 }
 
+.nav-link.active:hover {
+    background: #1d4ed8 !important;
+    color: white !important;
+}
+
+/* Убираем подчеркивание для активной ссылки */
 .nav-link.active::after {
-    content: '' !important;
-    position: absolute !important;
-    bottom: -2px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 20px !important;
-    height: 2px !important;
-    background: var(--primary-color, #2563eb) !important;
-    border-radius: 1px !important;
+    display: none !important;
 }
 
 /* GitHub ссылка */

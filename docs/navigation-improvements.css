@@ -38,16 +38,24 @@ header {
     font-size: 0.925rem !important;
     font-weight: 500 !important;
     letter-spacing: -0.01em !important;
+    color: #64748b !important; /* Серый цвет для неактивных */
 }
 
 .nav-link:hover {
     background: rgba(37, 99, 235, 0.08) !important;
+    color: var(--primary-color, #2563eb) !important;
     transform: none !important;
 }
 
 .nav-link.active {
-    background: rgba(37, 99, 235, 0.12) !important;
+    background: var(--primary-color, #2563eb) !important; /* Синий фон для активной */
+    color: white !important; /* Белый текст */
     font-weight: 600 !important;
+}
+
+.nav-link.active:hover {
+    background: #1d4ed8 !important; /* Темнее синий при hover на активной */
+    color: white !important;
 }
 
 /* GitHub ссылка */
