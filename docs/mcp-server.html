@@ -782,17 +782,50 @@ set NO_COLOR=1</pre>
                         <li>Check Claude Desktop logs for errors</li>
                     </ol>
 
-                    <h3>Package Operation Errors</h3>
+                    <h3>Package Management Errors</h3>
+
+                    <h4>Package Operations Fail</h4>
                     <div class="warning">
-                        <strong>Problem:</strong> Package operations fail with errors
+                        <strong>Error:</strong> <code>failed to install package</code> or <code>ошибка загрузки конфигурации</code>
                     </div>
                     <p><strong>Solutions:</strong></p>
-                    <ol>
-                        <li>Check Criage repository availability</li>
-                        <li>Ensure repository configuration is correct</li>
-                        <li>Check access permissions to installation directories</li>
-                        <li>Enable debug mode: <code class="inline-code">set CRIAGE_DEBUG=1</code></li>
-                    </ol>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Test package manager directly
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search_packages","arguments":{"query":"test"}}}' | ./criage-mcp
+
+# Check repository connectivity
+curl -I https://repo.criage.ru/api/v1/
+ping repo.criage.ru
+
+# Check config and cache
+ls -la ~/.config/criage/
+ls -la ~/.cache/criage/
+
+# Reset package manager state
+rm -rf ~/.cache/criage/*
+mkdir -p ~/.config/criage</pre>
+                    </div>
+
+                    <h3>Debug & Development</h3>
+
+                    <h4>Enable Debug Mode</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Enable debug logging
+export CRIAGE_DEBUG=1
+
+# Run with verbose output
+./criage-mcp 2>mcp-debug.log &
+tail -f mcp-debug.log
+
+# Test MCP protocol step by step
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"debug","version":"1.0"}}}' | ./criage-mcp | jq .
+
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | ./criage-mcp | jq .
+
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"list_packages","arguments":{}}}' | ./criage-mcp | jq .</pre>
+                    </div>
 
                     <h3>Debugging and Logging</h3>
                     <p>Enable verbose logging for problem diagnosis:</p>

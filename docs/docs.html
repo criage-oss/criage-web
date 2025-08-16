@@ -1112,21 +1112,135 @@ mv criage ~/bin/
 export PATH=$PATH:~/bin</pre>
                     </div>
 
+                    <h4>Configuration Issues</h4>
+                    <div class="warning">
+                        <strong>Error:</strong> <code>failed to create config manager</code>
+                    </div>
+                    <p><strong>Solutions:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Check HOME environment variable
+echo $HOME
+
+# Create config directory manually
+mkdir -p ~/.config/criage
+chmod 755 ~/.config/criage
+
+# Reset configuration
+rm ~/.config/criage/config.yaml
+criage config list</pre>
+                    </div>
+
+                    <h4>Package Management Errors</h4>
+                    <div class="warning">
+                        <strong>Error:</strong> <code>package not found</code> or <code>failed to install package</code>
+                    </div>
+                    <p><strong>Solutions:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Check repository connectivity
+criage config get repository.url
+curl -I https://repo.criage.ru/api/v1/
+
+# Test package search first
+criage search package-name
+
+# Force repository refresh
+criage config set repository.url https://repo.criage.ru
+criage update</pre>
+                    </div>
+
                     <h4>Network Errors with Repositories</h4>
+                    <div class="warning">
+                        <strong>Error:</strong> <code>connection timeout</code> or <code>rate limit exceeded</code>
+                    </div>
+                    <p><strong>Solutions:</strong></p>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
                         <pre># Check repository availability
 criage repo check
 
 # Increase timeout
-criage config set repository.timeout 30</pre>
+criage config set repository.timeout 30
+
+# Reduce parallel requests
+criage config set parallel 1
+
+# Use different repository mirror
+criage config set repository.url https://eu-mirror.criage.ru</pre>
                     </div>
 
-                    <h3>Debugging</h3>
-                    <p>For detailed information, use the verbose flag:</p>
+                    <h4>Archive & Format Issues</h4>
+                    <div class="warning">
+                        <strong>Error:</strong> <code>unsupported archive format</code> or <code>failed to extract archive</code>
+                    </div>
+                    <p><strong>Solutions:</strong></p>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-                        <pre>criage install package-name --verbose</pre>
+                        <pre># Check supported formats
+criage info --formats
+
+# Try different compression format
+criage install package-name --format tar.gz
+criage install package-name --format zip
+
+# Check archive integrity
+file package.criage</pre>
+                    </div>
+
+                    <h4>File System Issues</h4>
+                    <div class="warning">
+                        <strong>Error:</strong> <code>no space left on device</code> or <code>permission denied</code>
+                    </div>
+                    <p><strong>Solutions:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Check disk space
+df -h
+du -sh ~/.config/criage ~/.cache/criage
+
+# Clean cache
+criage cache clear
+
+# Fix permissions
+sudo chown -R $USER:$USER ~/.config/criage
+chmod -R 755 ~/.config/criage
+
+# Use different paths
+criage config set cache_path ~/criage-cache
+criage config set local_path ~/criage-packages</pre>
+                    </div>
+
+                    <h3>Debugging & Recovery</h3>
+                    <h4>Enable Debug Mode</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Enable debug mode
+export CRIAGE_DEBUG=1
+
+# Verbose output
+criage install package-name --verbose
+
+# Check configuration
+criage config list
+
+# Test basic functionality
+criage search test
+criage list</pre>
+                    </div>
+
+                    <h4>Complete Reset</h4>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Backup and reset configuration
+cp ~/.config/criage/config.yaml ~/.config/criage/config.yaml.backup
+rm ~/.config/criage/config.yaml
+
+# Clear cache
+rm -rf ~/.cache/criage/*
+
+# Reinstall if needed
+criage --version</pre>
                     </div>
 
                     <h3>Getting Help</h3>

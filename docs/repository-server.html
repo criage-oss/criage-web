@@ -788,25 +788,89 @@ WantedBy=multi-user.target</pre>
                     <h3>Common Issues</h3>
 
                     <h4>Server Won't Start</h4>
-                    <ul>
-                        <li>Check if port 8080 is available</li>
-                        <li>Verify configuration file syntax</li>
-                        <li>Ensure storage directory exists and is writable</li>
-                    </ul>
+                    <div class="warning">
+                        <strong>Error:</strong> <code>Failed to load config</code> or <code>bind: address already in use</code>
+                    </div>
+                    <p><strong>Solutions:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Check if port is available
+netstat -tlnp | grep :8080
+lsof -i :8080
+
+# Kill process using the port
+sudo kill -9 $(lsof -t -i:8080)
+
+# Use different port
+echo '{
+  "host": "0.0.0.0",
+  "port": 8081
+}' > config.json
+
+# Check config syntax
+cat config.json | jq .</pre>
+                    </div>
+
+                    <h4>Configuration File Issues</h4>
+                    <div class="warning">
+                        <strong>Error:</strong> <code>invalid character</code> in JSON or <code>failed to unmarshal config</code>
+                    </div>
+                    <p><strong>Solutions:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Validate JSON syntax
+jq . config.json
+python -m json.tool config.json
+
+# Recreate default config
+rm config.json
+./criage-server --config config.json</pre>
+                    </div>
 
                     <h4>Upload Fails</h4>
-                    <ul>
-                        <li>Verify authentication token</li>
-                        <li>Check file size against <code class="inline-code">maxFileSize</code></li>
-                        <li>Ensure file format is in <code class="inline-code">allowedFormats</code></li>
-                    </ul>
+                    <div class="warning">
+                        <strong>Error:</strong> <code>authentication failed</code>, <code>file too large</code>, or <code>unsupported format</code>
+                    </div>
+                    <p><strong>Solutions:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Check authentication token
+export CRIAGE_UPLOAD_TOKEN="your-secret-token"
+curl -H "Authorization: Bearer $CRIAGE_UPLOAD_TOKEN" \
+     -F "file=@package.criage" \
+     http://localhost:8080/api/v1/upload
+
+# Check file size and format
+ls -la package.criage
+file package.criage
+
+# Update config.json
+"max_file_size": 209715200,  # 200MB
+"allowed_formats": ["criage", "tar.zst", "tar.gz", "zip"]</pre>
+                    </div>
 
                     <h4>Performance Issues</h4>
-                    <ul>
-                        <li>Monitor disk space and I/O</li>
-                        <li>Check memory usage</li>
-                        <li>Consider increasing <code class="inline-code">maxFileSize</code> for large packages</li>
-                    </ul>
+                    <div class="warning">
+                        <strong>Problem:</strong> Server consuming too much memory or running slowly
+                    </div>
+                    <p><strong>Solutions:</strong></p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Monitor resources
+top -p $(pgrep criage-server)
+df -h
+du -sh ./packages
+
+# Optimize configuration
+{
+  "max_file_size": 52428800,  # 50MB
+  "rate_limit": 10,           # requests per second
+  "log_level": "warn"
+}
+
+# Clean old packages
+find ./packages -type f -mtime +30 -delete</pre>
+                    </div>
 
                     <h3>Debug Mode</h3>
                     <div class="code-block">
