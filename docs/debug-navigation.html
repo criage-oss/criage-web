@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Debug - Criage</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f8fafc;
+        }
+        
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .debug-section h2 {
+            color: #1e293b;
+            margin-top: 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #16a34a;
+        }
+        
+        .status.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        
+        .status.warning {
+            background: #fefce8;
+            color: #854d0e;
+            border: 1px solid #eab308;
+        }
+        
+        .log-output {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        /* Стили навигации для тестирования */
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            position: relative;
+            background: transparent;
+            margin: 0 0.25rem;
+        }
+
+        .nav-link:hover {
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.1);
+            font-weight: 600;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background: #2563eb;
+            border-radius: 1px;
+        }
+
+        .github-link {
+            background: #1e293b;
+            color: white;
+            font-weight: 600;
+        }
+
+        .github-link:hover {
+            background: #2563eb;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .github-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            list-style: none;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin: 20px 0;
+        }
+
+        .lang-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin: 0 0.25rem;
+        }
+
+        .lang-btn:hover,
+        .lang-btn.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .language-switcher {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Navigation Debug Tool - Criage</h1>
+    
+    <div class="debug-section">
+        <h2>🔍 System Check</h2>
+        <div id="systemStatus"></div>
+        <button onclick="runSystemCheck()">Run System Check</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>📄 DOM Elements</h2>
+        <div id="domStatus"></div>
+        <button onclick="checkDOMElements()">Check DOM Elements</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>🧪 Navigation Test</h2>
+        <div id="navTestArea">
+            <ul class="nav-links" id="testNavigation">
+                <!-- Navigation will be populated here -->
+            </ul>
+            <div class="language-switcher" id="testLanguageSwitcher">
+                <!-- Language switcher will be populated here -->
+            </div>
+        </div>
+        <button onclick="testNavigation()">Test Navigation</button>
+        <button onclick="testNavigationJS()">Test navigation.js</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>📊 Network Status</h2>
+        <div id="networkStatus"></div>
+        <button onclick="checkNetworkResources()">Check Resources</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>📝 Console Log</h2>
+        <div class="log-output" id="consoleLog"></div>
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="exportLog()">Export Log</button>
+    </div>
+
+    <script>
+        let logMessages = [];
+
+        // Перехватываем console.log для отображения
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addToLog(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logMessages.push(logMessage);
+            updateLogDisplay();
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToLog('log', args.join(' '));
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToLog('error', args.join(' '));
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToLog('warn', args.join(' '));
+        };
+
+        function updateLogDisplay() {
+            const logElement = document.getElementById('consoleLog');
+            logElement.textContent = logMessages.slice(-50).join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            logMessages = [];
+            updateLogDisplay();
+        }
+
+        function exportLog() {
+            const blob = new Blob([logMessages.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'criage-navigation-debug.log';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function setStatus(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function runSystemCheck() {
+            console.log('Running system check...');
+            let results = [];
+
+            // Check browser
+            results.push(`Browser: ${navigator.userAgent}`);
+            results.push(`URL: ${window.location.href}`);
+            results.push(`Protocol: ${window.location.protocol}`);
+            results.push(`Host: ${window.location.host}`);
+
+            // Check JavaScript features
+            try {
+                results.push(`✅ ES6 supported: ${typeof Promise !== 'undefined'}`);
+                results.push(`✅ Fetch API: ${typeof fetch !== 'undefined'}`);
+                results.push(`✅ Local Storage: ${typeof localStorage !== 'undefined'}`);
+                results.push(`✅ Query Selector: ${typeof document.querySelector !== 'undefined'}`);
+            } catch (e) {
+                results.push(`❌ JavaScript error: ${e.message}`);
+            }
+
+            setStatus('systemStatus', results.join('<br>'), 'success');
+        }
+
+        function checkDOMElements() {
+            console.log('Checking DOM elements...');
+            let results = [];
+
+            const elements = [
+                '.nav-links',
+                '.language-switcher', 
+                '.mobile-nav',
+                '.mobile-menu-toggle'
+            ];
+
+            elements.forEach(selector => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    results.push(`✅ ${selector}: Found (${element.children.length} children)`);
+                } else {
+                    results.push(`❌ ${selector}: Not found`);
+                }
+            });
+
+            // Check scripts
+            const scripts = document.querySelectorAll('script[src]');
+            results.push(`📄 Scripts loaded: ${scripts.length}`);
+            scripts.forEach(script => {
+                results.push(`   - ${script.src}`);
+            });
+
+            setStatus('domStatus', results.join('<br>'), results.some(r => r.includes('❌')) ? 'error' : 'success');
+        }
+
+        function testNavigation() {
+            console.log('Testing navigation generation...');
+            
+            const navLinks = document.getElementById('testNavigation');
+            const langSwitcher = document.getElementById('testLanguageSwitcher');
+
+            // Clear existing content
+            navLinks.innerHTML = '';
+            langSwitcher.innerHTML = '';
+
+            try {
+                // Generate navigation manually
+                const isRussian = window.location.pathname.includes('_ru') || window.location.pathname.includes('debug');
+                const links = isRussian ? [
+                    '<li><a href="index_ru.html" class="nav-link">Главная</a></li>',
+                    '<li><a href="docs_ru.html" class="nav-link">Документация клиента</a></li>',
+                    '<li><a href="repository-server_ru.html" class="nav-link">Сервер репозитория</a></li>',
+                    '<li><a href="mcp-server_ru.html" class="nav-link">MCP Server</a></li>',
+                    '<li><a href="cicd-examples_ru.html" class="nav-link">Примеры CI/CD</a></li>',
+                    '<li><a href="https://github.com/criage-oss/criage-client" target="_blank" class="nav-link github-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>GitHub</a></li>'
+                ] : [
+                    '<li><a href="index.html" class="nav-link">Home</a></li>',
+                    '<li><a href="docs.html" class="nav-link">Client Docs</a></li>',
+                    '<li><a href="repository-server.html" class="nav-link">Repository Server</a></li>',
+                    '<li><a href="mcp-server.html" class="nav-link">MCP Server</a></li>',
+                    '<li><a href="cicd-examples.html" class="nav-link">CI/CD Examples</a></li>',
+                    '<li><a href="https://github.com/criage-oss/criage-client" target="_blank" class="nav-link github-link"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>GitHub</a></li>'
+                ];
+
+                navLinks.innerHTML = links.join('');
+
+                // Language switcher
+                const currentHref = isRussian ? 'debug-navigation.html' : 'debug-navigation.html';
+                const otherHref = isRussian ? 'debug-navigation.html' : 'debug-navigation.html';
+                const currentLang = isRussian ? 'RU' : 'EN';
+                const otherLang = isRussian ? 'EN' : 'RU';
+
+                langSwitcher.innerHTML = `
+                    <a href="${currentHref}" class="lang-btn active">${currentLang}</a>
+                    <a href="${otherHref}" class="lang-btn">${otherLang}</a>
+                `;
+
+                console.log('✅ Navigation test completed successfully');
+                setStatus('navTestArea', '✅ Navigation generated successfully!', 'success');
+
+            } catch (error) {
+                console.error('❌ Navigation test failed:', error);
+                setStatus('navTestArea', `❌ Navigation test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function testNavigationJS() {
+            console.log('Testing navigation.js...');
+            
+            try {
+                // Try to load navigation.js
+                const script = document.createElement('script');
+                script.src = 'navigation.js';
+                script.onload = function() {
+                    console.log('✅ navigation.js loaded successfully');
+                    
+                    // Check if NavigationManager exists
+                    if (typeof NavigationManager !== 'undefined') {
+                        console.log('✅ NavigationManager found');
+                        const nav = new NavigationManager();
+                        nav.init();
+                        console.log('✅ NavigationManager initialized');
+                    } else {
+                        console.warn('⚠️ NavigationManager not found in navigation.js');
+                    }
+                };
+                script.onerror = function() {
+                    console.error('❌ Failed to load navigation.js');
+                };
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                console.error('❌ Error testing navigation.js:', error);
+            }
+        }
+
+        function checkNetworkResources() {
+            console.log('Checking network resources...');
+            let results = [];
+
+            const resources = [
+                'navigation.js',
+                'navigation-styles.css',
+                'mobile-menu.js',
+                'os-switcher.js',
+                'os-switcher.css'
+            ];
+
+            Promise.all(resources.map(resource => 
+                fetch(resource)
+                    .then(response => ({ resource, status: response.status, ok: response.ok }))
+                    .catch(error => ({ resource, error: error.message }))
+            )).then(results => {
+                let html = [];
+                results.forEach(result => {
+                    if (result.ok) {
+                        html.push(`✅ ${result.resource}: ${result.status}`);
+                    } else if (result.error) {
+                        html.push(`❌ ${result.resource}: ${result.error}`);
+                    } else {
+                        html.push(`⚠️ ${result.resource}: ${result.status}`);
+                    }
+                });
+
+                const hasErrors = results.some(r => !r.ok);
+                setStatus('networkStatus', html.join('<br>'), hasErrors ? 'error' : 'success');
+            });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Debug tool initialized');
+            addToLog('info', 'Debug tool loaded successfully');
+            
+            // Auto-run basic checks
+            setTimeout(() => {
+                runSystemCheck();
+                checkDOMElements();
+                testNavigation();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
