@@ -441,6 +441,49 @@
             }
         }
 
+        /* Переключатель ОС */
+        .os-switcher {
+            max-width: 100%;
+        }
+
+        .os-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+
+        .os-tab {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border);
+            background: var(--background);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .os-tab:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .os-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .os-content {
+            display: none;
+        }
+
+        .os-content.active {
+            display: block;
+        }
+
         /* Анимации */
         @keyframes fadeInUp {
             from {
@@ -547,19 +590,45 @@
         <div class="container">
             <h2 class="section-title">Установка</h2>
 
-            <h3>Из исходного кода</h3>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
-                git clone https://github.com/criage-oss/criage-client.git
-                cd criage-client
-                go build -o criage
-                sudo mv criage /usr/local/bin/
-            </div>
+            <div class="os-switcher">
+                <div class="os-tabs">
+                    <button class="os-tab active" data-os="linux">🐧 Linux</button>
+                    <button class="os-tab" data-os="macos">🍎 macOS</button>
+                    <button class="os-tab" data-os="windows">🪟 Windows</button>
+                </div>
+                
+                <div class="code-block os-content active" data-os="linux">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                    # Установка на Linux
+                    wget https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64.tar.gz
+                    tar -xzf criage-linux-amd64.tar.gz
+                    sudo mv criage-linux-amd64 /usr/local/bin/criage
 
-            <h3>Проверка установки</h3>
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
-                criage --version
+                    # Проверка установки
+                    criage --version
+                </div>
+                
+                <div class="code-block os-content" data-os="macos">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                    # Установка на macOS
+                    curl -L https://github.com/criage-oss/criage-client/releases/latest/download/criage-darwin-amd64.tar.gz -o criage-darwin-amd64.tar.gz
+                    tar -xzf criage-darwin-amd64.tar.gz
+                    sudo mv criage-darwin-amd64 /usr/local/bin/criage
+
+                    # Проверка установки
+                    criage --version
+                </div>
+                
+                <div class="code-block os-content" data-os="windows">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Копировать</button>
+                    # Установка на Windows (PowerShell)
+                    Invoke-WebRequest -Uri "https://github.com/criage-oss/criage-client/releases/latest/download/criage-windows-amd64.zip" -OutFile "criage-windows-amd64.zip"
+                    Expand-Archive -Path "criage-windows-amd64.zip" -DestinationPath "."
+                    Move-Item "criage-windows-amd64.exe" "$env:USERPROFILE\AppData\Local\Microsoft\WindowsApps\criage.exe"
+
+                    # Проверка установки
+                    criage --version
+                </div>
             </div>
         </div>
     </section>
@@ -612,7 +681,7 @@
             <h2 class="section-title">Статистика проекта</h2>
             <div class="stats-grid">
                 <div class="stat-item">
-                    <span class="stat-number">1.0.0</span>
+                    <span class="stat-number">1.0.8</span>
                     <div class="stat-label">Текущая версия</div>
                 </div>
                 <div class="stat-item">
@@ -644,6 +713,30 @@
     </footer>
 
     <script>
+        // Переключатель ОС
+        function initOSSwitcher() {
+            const tabs = document.querySelectorAll('.os-tab');
+            const contents = document.querySelectorAll('.os-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetOS = tab.dataset.os;
+
+                    // Обновляем активную вкладку
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    // Обновляем активный контент
+                    contents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.dataset.os === targetOS) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+        }
+
         // Функция копирования в буфер обмена
         function copyToClipboard(btn) {
             const codeBlock = btn.parentElement;
@@ -690,6 +783,9 @@
             el.style.opacity = '0';
             observer.observe(el);
         });
+
+        // Инициализируем переключатель ОС
+        initOSSwitcher();
     </script>
     
     <!-- Централизованная навигация -->

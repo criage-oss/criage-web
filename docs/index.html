@@ -526,6 +526,49 @@
             }
         }
 
+        /* OS Switcher */
+        .os-switcher {
+            max-width: 100%;
+        }
+
+        .os-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+
+        .os-tab {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border);
+            background: var(--background);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .os-tab:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .os-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .os-content {
+            display: none;
+        }
+
+        .os-content.active {
+            display: block;
+        }
+
         /* Animations */
         @keyframes fadeInUp {
             from {
@@ -650,16 +693,45 @@
                         </a>
                     </div>
                 </div>
-                <div class="code-snippet">
-                    <button class="copy-code" onclick="copyToClipboard(this)">Copy</button>
-                    <pre># Clone and build from source
-git clone https://github.com/criage-oss/criage-client.git
-cd criage-client
-go build -o criage
-sudo mv criage /usr/local/bin/
+                <div class="os-switcher">
+                    <div class="os-tabs">
+                        <button class="os-tab active" data-os="linux">🐧 Linux</button>
+                        <button class="os-tab" data-os="macos">🍎 macOS</button>
+                        <button class="os-tab" data-os="windows">🪟 Windows</button>
+                    </div>
+                    
+                    <div class="code-snippet os-content active" data-os="linux">
+                        <button class="copy-code" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Install on Linux
+wget https://github.com/criage-oss/criage-client/releases/latest/download/criage-linux-amd64.tar.gz
+tar -xzf criage-linux-amd64.tar.gz
+sudo mv criage-linux-amd64 /usr/local/bin/criage
 
 # Verify installation
 criage --version</pre>
+                    </div>
+                    
+                    <div class="code-snippet os-content" data-os="macos">
+                        <button class="copy-code" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Install on macOS
+curl -L https://github.com/criage-oss/criage-client/releases/latest/download/criage-darwin-amd64.tar.gz -o criage-darwin-amd64.tar.gz
+tar -xzf criage-darwin-amd64.tar.gz
+sudo mv criage-darwin-amd64 /usr/local/bin/criage
+
+# Verify installation
+criage --version</pre>
+                    </div>
+                    
+                    <div class="code-snippet os-content" data-os="windows">
+                        <button class="copy-code" onclick="copyToClipboard(this)">Copy</button>
+                        <pre># Install on Windows (PowerShell)
+Invoke-WebRequest -Uri "https://github.com/criage-oss/criage-client/releases/latest/download/criage-windows-amd64.zip" -OutFile "criage-windows-amd64.zip"
+Expand-Archive -Path "criage-windows-amd64.zip" -DestinationPath "."
+Move-Item "criage-windows-amd64.exe" "$env:USERPROFILE\AppData\Local\Microsoft\WindowsApps\criage.exe"
+
+# Verify installation
+criage --version</pre>
+                    </div>
                 </div>
             </div>
         </div>
@@ -847,6 +919,30 @@ criage --version</pre>
     </footer>
 
     <script>
+        // OS Switcher functionality
+        function initOSSwitcher() {
+            const tabs = document.querySelectorAll('.os-tab');
+            const contents = document.querySelectorAll('.os-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetOS = tab.dataset.os;
+
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    // Update active content
+                    contents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.dataset.os === targetOS) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+        }
+
         // Copy to clipboard functionality
         function copyToClipboard(btn) {
             const parent = btn.parentElement;
@@ -900,6 +996,9 @@ criage --version</pre>
         document.querySelectorAll('.feature-card, .command-category').forEach(el => {
             observer.observe(el);
         });
+
+        // Initialize OS switcher
+        initOSSwitcher();
     </script>
     
     <!-- Централизованная навигация -->

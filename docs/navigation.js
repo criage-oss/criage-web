@@ -102,21 +102,23 @@ class NavigationManager {
     createNavigationLinks() {
         let links = '';
         
-        // Добавляем локальные ссылки для главной страницы
-        const localLinks = this.createLocalPageLinks();
-        if (localLinks) {
-            links += localLinks + '\n                    ';
+        // На главной странице показываем только локальные якорные ссылки
+        if (this.currentPageId === 'home') {
+            const localLinks = this.createLocalPageLinks();
+            if (localLinks) {
+                links += localLinks;
+            }
+        } else {
+            // На других страницах показываем глобальные навигационные ссылки
+            const config = NavigationConfig.languages[this.currentLanguage];
+            const globalLinks = config.links.map(link => {
+                const isActive = link.id === this.currentPageId;
+                const activeClass = isActive ? ' class="active"' : '';
+                return `<li><a href="${link.href}"${activeClass}>${link.text}</a></li>`;
+            }).join('\n                    ');
+            
+            links += globalLinks;
         }
-        
-        // Добавляем глобальные навигационные ссылки
-        const config = NavigationConfig.languages[this.currentLanguage];
-        const globalLinks = config.links.map(link => {
-            const isActive = link.id === this.currentPageId;
-            const activeClass = isActive ? ' class="active"' : '';
-            return `<li><a href="${link.href}"${activeClass}>${link.text}</a></li>`;
-        }).join('\n                    ');
-        
-        links += globalLinks;
 
         // Добавляем GitHub ссылку
         const githubLink = this.getGitHubLink();

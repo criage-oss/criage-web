@@ -1,0 +1,217 @@
+/**
+ * Стили для универсального переключателя ОС
+ * Подключайте этот файл на страницы с инструкциями установки
+ */
+
+/* Переключатель ОС */
+.os-switcher {
+    max-width: 100%;
+    margin: 1rem 0;
+}
+
+.os-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.os-tab {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid var(--border, #e2e8f0);
+    background: var(--background, #ffffff);
+    color: var(--text-secondary, #64748b);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-family: inherit;
+    outline: none;
+}
+
+.os-tab:hover {
+    border-color: var(--primary-color, #2563eb);
+    color: var(--primary-color, #2563eb);
+    transform: translateY(-1px);
+}
+
+.os-tab.active {
+    background: var(--primary-color, #2563eb);
+    color: white;
+    border-color: var(--primary-color, #2563eb);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.os-tab:focus {
+    outline: 2px solid var(--primary-color, #2563eb);
+    outline-offset: 2px;
+}
+
+/* Контент для каждой ОС */
+.os-content {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.os-content.active {
+    display: block;
+}
+
+/* Блоки кода с копированием */
+.code-snippet {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 12px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+    font-size: 14px;
+    position: relative;
+    overflow-x: auto;
+    margin: 1rem 0;
+    border: 1px solid #334155;
+}
+
+.code-snippet pre {
+    margin: 0;
+    padding: 0;
+    background: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.5;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.copy-code {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--primary-color, #2563eb);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+    font-family: inherit;
+}
+
+.copy-code:hover {
+    background: var(--primary-dark, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.copy-code:active {
+    transform: translateY(0);
+}
+
+/* Автоматические блоки установки */
+.auto-os-switch {
+    background: var(--surface, #f8fafc);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border, #e2e8f0);
+    margin: 2rem 0;
+}
+
+.auto-os-switch .os-switcher {
+    margin: 0 0 1rem 0;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive дизайн */
+@media (max-width: 768px) {
+    .os-tabs {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .os-tab {
+        width: 100%;
+        max-width: 200px;
+        text-align: center;
+    }
+    
+    .code-snippet {
+        padding: 1rem;
+        font-size: 13px;
+    }
+    
+    .copy-code {
+        position: static;
+        display: block;
+        margin-bottom: 1rem;
+        width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .os-tab {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .code-snippet {
+        padding: 0.75rem;
+        font-size: 12px;
+    }
+}
+
+/* Темная тема (если поддерживается) */
+@media (prefers-color-scheme: dark) {
+    .os-tab {
+        border-color: #374151;
+        background: #1f2937;
+        color: #d1d5db;
+    }
+    
+    .os-tab:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+    
+    .auto-os-switch {
+        background: #1f2937;
+        border-color: #374151;
+    }
+}
+
+/* Печать */
+@media print {
+    .os-tabs {
+        display: none;
+    }
+    
+    .os-content {
+        display: block !important;
+    }
+    
+    .copy-code {
+        display: none;
+    }
+    
+    .code-snippet {
+        background: #f8f9fa !important;
+        color: #212529 !important;
+        border: 1px solid #dee2e6 !important;
+    }
+}
