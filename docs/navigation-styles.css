@@ -3,6 +3,38 @@
  * Подключайте этот файл на все страницы документации
  */
 
+/* Логотип */
+.logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    text-decoration: none !important;
+    color: var(--text-primary, #1e293b) !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    transition: opacity 0.2s ease !important;
+    padding: 0.5rem 0 !important;
+}
+
+.logo:hover {
+    opacity: 0.8 !important;
+}
+
+.logo img {
+    width: 36px !important;
+    height: 36px !important;
+    object-fit: contain !important;
+    display: block !important;
+}
+
+.logo-text {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: var(--text-primary, #1e293b) !important;
+    line-height: 1 !important;
+}
+
 /* Навигационные ссылки */
 .nav-link {
     display: inline-flex !important;
@@ -11,11 +43,13 @@
     color: var(--text-secondary, #64748b) !important;
     text-decoration: none !important;
     font-weight: 500 !important;
-    padding: 0.75rem 1rem !important;
-    border-radius: 8px !important;
+    padding: 0.625rem 0.875rem !important;
+    border-radius: 6px !important;
     transition: all 0.2s ease !important;
     position: relative !important;
     background: transparent !important;
+    font-size: 0.95rem !important;
+    white-space: nowrap !important;
 }
 
 .nav-link:hover {
@@ -61,12 +95,21 @@
     height: 16px !important;
 }
 
+/* Контейнер */
+.container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
 /* Список навигации */
 .nav-links {
     display: flex !important;
-    gap: 0.5rem !important;
+    gap: 0.25rem !important;
     list-style: none !important;
     align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* Заголовок сайта */
@@ -75,6 +118,22 @@ header {
     backdrop-filter: blur(10px) !important;
     border-bottom: 1px solid var(--border, #e2e8f0) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+}
+
+nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 1rem 0 !important;
+}
+
+.nav-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
 }
 
 /* Мобильное меню */
