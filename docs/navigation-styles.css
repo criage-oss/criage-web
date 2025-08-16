@@ -1,0 +1,249 @@
+/**
+ * Универсальные стили навигации для всех страниц Criage
+ * Подключайте этот файл на все страницы документации
+ */
+
+/* Навигационные ссылки */
+.nav-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    color: var(--text-secondary, #64748b) !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+    background: transparent !important;
+}
+
+.nav-link:hover {
+    color: var(--primary-color, #2563eb) !important;
+    background: rgba(37, 99, 235, 0.1) !important;
+    transform: translateY(-1px) !important;
+}
+
+.nav-link.active {
+    color: var(--primary-color, #2563eb) !important;
+    background: rgba(37, 99, 235, 0.1) !important;
+    font-weight: 600 !important;
+}
+
+.nav-link.active::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -2px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 20px !important;
+    height: 2px !important;
+    background: var(--primary-color, #2563eb) !important;
+    border-radius: 1px !important;
+}
+
+/* GitHub ссылка */
+.github-link {
+    background: var(--text-primary, #1e293b) !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.github-link:hover {
+    background: var(--primary-color, #2563eb) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+.github-link svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Список навигации */
+.nav-links {
+    display: flex !important;
+    gap: 0.5rem !important;
+    list-style: none !important;
+    align-items: center !important;
+}
+
+/* Заголовок сайта */
+header {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid var(--border, #e2e8f0) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Мобильное меню */
+.mobile-menu-toggle {
+    display: none !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 0.5rem !important;
+    border-radius: 6px !important;
+    transition: background 0.2s !important;
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--surface, #f8fafc) !important;
+}
+
+.mobile-menu-toggle svg {
+    width: 24px !important;
+    height: 24px !important;
+    color: var(--text-primary, #1e293b) !important;
+}
+
+.mobile-nav {
+    display: none !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    border-top: 1px solid var(--border, #e2e8f0) !important;
+    box-shadow: var(--shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1)) !important;
+    padding: 1rem !important;
+    z-index: 50 !important;
+}
+
+.mobile-nav.open {
+    display: block !important;
+}
+
+.mobile-nav .nav-links {
+    flex-direction: column !important;
+    gap: 0 !important;
+    width: 100% !important;
+}
+
+.mobile-nav .nav-link {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    padding: 1rem !important;
+    border-radius: 6px !important;
+}
+
+/* Языковой переключатель */
+.language-switcher {
+    display: flex !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+}
+
+.lang-btn {
+    padding: 0.5rem 1rem !important;
+    border: 1px solid var(--border, #e2e8f0) !important;
+    background: var(--background, #ffffff) !important;
+    color: var(--text-secondary, #64748b) !important;
+    text-decoration: none !important;
+    border-radius: 6px !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s !important;
+}
+
+.lang-btn:hover,
+.lang-btn.active {
+    background: var(--primary-color, #2563eb) !important;
+    color: white !important;
+    border-color: var(--primary-color, #2563eb) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none !important;
+    }
+
+    .mobile-menu-toggle {
+        display: block !important;
+    }
+
+    .nav-content {
+        gap: 1rem !important;
+    }
+}
+
+/* Анимации */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mobile-nav.open {
+    animation: slideDown 0.3s ease-out !important;
+}
+
+/* Поддержка темной темы */
+@media (prefers-color-scheme: dark) {
+    header {
+        background: rgba(31, 41, 55, 0.95) !important;
+        border-bottom-color: #374151 !important;
+    }
+
+    .mobile-nav {
+        background: #1f2937 !important;
+        border-top-color: #374151 !important;
+    }
+
+    .nav-link {
+        color: #d1d5db !important;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+        background: rgba(59, 130, 246, 0.1) !important;
+        color: #3b82f6 !important;
+    }
+
+    .lang-btn {
+        background: #1f2937 !important;
+        border-color: #374151 !important;
+        color: #d1d5db !important;
+    }
+
+    .mobile-menu-toggle:hover {
+        background: #374151 !important;
+    }
+
+    .mobile-menu-toggle svg {
+        color: #d1d5db !important;
+    }
+}
+
+/* Доступность */
+.nav-link:focus,
+.lang-btn:focus,
+.mobile-menu-toggle:focus {
+    outline: 2px solid var(--primary-color, #2563eb) !important;
+    outline-offset: 2px !important;
+}
+
+/* Предотвращение конфликтов стилей */
+.nav-links li {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.nav-links a {
+    /* Сброс базовых стилей ссылок */
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.nav-links a:not(.nav-link) {
+    /* Применяем стили только к элементам с классом nav-link */
+    all: revert !important;
+}
